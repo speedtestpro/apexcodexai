@@ -82,10 +82,10 @@ export const Route = createFileRoute("/api/upgrade")({
         }
         try {
           const data = await tg.json() as { result?: { message_id?: number } };
-          const rec = upgrades.get(id);
-          if (rec && data.result?.message_id) rec.messageId = data.result.message_id;
+          if (data.result?.message_id) await setUpgradeMessageId(id, data.result.message_id);
         } catch {}
         return Response.json({ ok: true, id });
+
       },
     },
   },
