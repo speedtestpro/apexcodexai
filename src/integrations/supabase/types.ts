@@ -14,7 +14,48 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      upgrade_requests: {
+        Row: {
+          contact: string
+          created_at: string
+          id: string
+          message_id: number | null
+          method: string
+          note: string
+          plan_id: string
+          plan_label: string
+          price: string
+          status: string
+          user_name: string
+        }
+        Insert: {
+          contact?: string
+          created_at?: string
+          id: string
+          message_id?: number | null
+          method?: string
+          note?: string
+          plan_id: string
+          plan_label: string
+          price?: string
+          status?: string
+          user_name?: string
+        }
+        Update: {
+          contact?: string
+          created_at?: string
+          id?: string
+          message_id?: number | null
+          method?: string
+          note?: string
+          plan_id?: string
+          plan_label?: string
+          price?: string
+          status?: string
+          user_name?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
