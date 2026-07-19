@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { upgrades } from "@/lib/upgrade-store.server";
+import { createHash, timingSafeEqual } from "crypto";
 
 const OWNER_ID = "8040684574";
 
@@ -27,6 +28,13 @@ export const Route = createFileRoute("/api/public/telegram/webhook")({
         if (!token) {
           console.error("[telegram/webhook] TELEGRAM_BOT_TOKEN is not set");
           return Response.json({ ok: true });
+        }
+
+        const expectedSecret = deriveTelegramWebhookSecret(token);
+        const actualSecret = request.headers.get("x-telegram-bot-api-secret-token") ?? "";
+        if (!safeEqual(actualSecret, expectedSecret)) {
+          console.error("[telegram/webhook] invalid Telegram webhook secret");
+          return new Response("Unauthorized", { status: 401 });
         }
 
         const cbId: string = cb.id;
@@ -71,30 +79,26 @@ export const Route = createFileRoute("/api/public/telegram/webhook")({
 
           // 3) Handle action.
           // IMPORTANT: answer the callback FIRST so the button stops spinning,
-          // then edit the message. Run edit in parallel to be extra fast.
+          // then edit the message. Never let Telegram wait on the edit call.
           if (action === "confirm") {
             rec.status = "confirmed";
-            await Promise.all([
-              answerCallback(token, cbId, "✅ Тариф выдан пользователю", false),
-              editMessage(
-                token,
-                cb.message?.chat?.id,
-                cb.message?.message_id,
-                (cb.message?.text ?? "") +
-                  `\n\n✅ Подтверждено — тариф ${rec.planLabel} выдан.`,
-              ),
-            ]);
+            await answerCallback(token, cbId, "✅ Тариф выдан пользователю", false);
+            await editMessage(
+              token,
+              cb.message?.chat?.id,
+              cb.message?.message_id,
+              (cb.message?.text ?? "") +
+                `\n\n✅ Подтверждено — тариф ${rec.planLabel} выдан.`,
+            );
           } else if (action === "reject") {
             rec.status = "rejected";
-            await Promise.all([
-              answerCallback(token, cbId, "Заявка отклонена", false),
-              editMessage(
-                token,
-                cb.message?.chat?.id,
-                cb.message?.message_id,
-                (cb.message?.text ?? "") + `\n\n✖ Отклонено.`,
-              ),
-            ]);
+            await answerCallback(token, cbId, "Заявка отклонена", false);
+            await editMessage(
+              token,
+              cb.message?.chat?.id,
+              cb.message?.message_id,
+              (cb.message?.text ?? "") + `\n\n✖ Отклонено.`,
+            );
           } else {
             await answerCallback(token, cbId, "Неизвестное действие", true);
           }
@@ -119,7 +123,7 @@ async function answerCallback(
   alert: boolean,
 ) {
   try {
-    const res = await fetch(
+    const res = await fetchWithTimeout(
       `https://api.telegram.org/bot${token}/answerCallbackQuery`,
       {
         method: "POST",
@@ -130,6 +134,7 @@ async function answerCallback(
           show_alert: alert,
         }),
       },
+      1800,
     );
     if (!res.ok) {
       const body = await res.text().catch(() => "");
@@ -150,7 +155,7 @@ async function editMessage(
 ) {
   if (!chatId || !messageId) return;
   try {
-    const res = await fetch(
+    const res = await fetchWithTimeout(
       `https://api.telegram.org/bot${token}/editMessageText`,
       {
         method: "POST",
@@ -161,6 +166,7 @@ async function editMessage(
           text,
         }),
       },
+      2500,
     );
     if (!res.ok) {
       const body = await res.text().catch(() => "");
@@ -170,5 +176,25 @@ async function editMessage(
     }
   } catch (err) {
     console.error("[telegram/webhook] editMessageText threw", err);
+  }
+}
+
+function deriveTelegramWebhookSecret(token: string) {
+  return createHash("sha256").update(`telegram-webhook:${token}`).digest("base64url");
+}
+
+function safeEqual(a: string, b: string) {
+  const left = Buffer.from(a);
+  const right = Buffer.from(b);
+  return left.length === right.length && timingSafeEqual(left, right);
+}
+
+async function fetchWithTimeout(url: string, init: RequestInit, timeoutMs: number) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    return await fetch(url, { ...init, signal: controller.signal });
+  } finally {
+    clearTimeout(timer);
   }
 }
