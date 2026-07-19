@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { upgrades } from "@/lib/upgrade-store.server";
+import { getUpgrade, updateUpgradeStatus, upsertMinimalUpgrade } from "@/lib/upgrade-store.server";
 import { createHash, timingSafeEqual } from "crypto";
+
 
 const OWNER_ID = "8040684574";
 
