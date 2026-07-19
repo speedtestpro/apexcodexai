@@ -34,18 +34,22 @@ export const Route = createFileRoute("/api/upgrade")({
         const userName = (body.userName ?? "").toString().slice(0, 60);
         if (!contact || !plan || !planId) return new Response("Missing fields", { status: 400 });
 
-        gcUpgrades();
         const id = newUpgradeId();
-        upgrades.set(id, {
-          id, planId, planLabel: plan, price, contact, method, note, userName,
-          status: "pending", createdAt: Date.now(),
-        });
+        try {
+          await createUpgrade({
+            id, planId, planLabel: plan, price, contact, method, note, userName,
+            status: "pending", createdAt: Date.now(),
+          });
+        } catch (e) {
+          return new Response(`Storage error: ${e instanceof Error ? e.message : "unknown"}`, { status: 500 });
+        }
 
         const webhookReady = await ensureTelegramWebhook(token, request);
         if (!webhookReady.ok) {
-          upgrades.delete(id);
+          await deleteUpgrade(id);
           return new Response(`Telegram webhook error: ${webhookReady.error}`, { status: 502 });
         }
+
 
         const text =
           `🟡 <b>ApexCode — новая заявка на оплату</b>\n\n` +
