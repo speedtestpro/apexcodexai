@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { upgrades, newUpgradeId, gcUpgrades } from "@/lib/upgrade-store.server";
+import { createHash } from "crypto";
 
 const OWNER_ID = "8040684574";
 
@@ -38,6 +39,12 @@ export const Route = createFileRoute("/api/upgrade")({
           id, planId, planLabel: plan, price, contact, method, note, userName,
           status: "pending", createdAt: Date.now(),
         });
+
+        const webhookReady = await ensureTelegramWebhook(token, request);
+        if (!webhookReady.ok) {
+          upgrades.delete(id);
+          return new Response(`Telegram webhook error: ${webhookReady.error}`, { status: 502 });
+        }
 
         const text =
           `🟡 <b>ApexCode — новая заявка на оплату</b>\n\n` +
@@ -78,6 +85,86 @@ export const Route = createFileRoute("/api/upgrade")({
     },
   },
 });
+
+type WebhookResult = { ok: true } | { ok: false; error: string };
+
+const webhookCache = globalThis as unknown as {
+  __apexTelegramWebhook?: { url: string; checkedAt: number };
+};
+
+async function ensureTelegramWebhook(token: string, request: Request): Promise<WebhookResult> {
+  const webhookUrl = getTelegramWebhookUrl(request);
+  if (!webhookUrl) return { ok: false, error: "public HTTPS webhook URL is unavailable" };
+
+  const cached = webhookCache.__apexTelegramWebhook;
+  if (cached?.url === webhookUrl && Date.now() - cached.checkedAt < 10 * 60 * 1000) {
+    return { ok: true };
+  }
+
+  try {
+    const res = await fetchWithTimeout(`https://api.telegram.org/bot${token}/setWebhook`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        url: webhookUrl,
+        secret_token: deriveTelegramWebhookSecret(token),
+        allowed_updates: ["callback_query"],
+        drop_pending_updates: false,
+      }),
+    }, 4500);
+
+    const body = await res.text().catch(() => "");
+    if (!res.ok) return { ok: false, error: body || `HTTP ${res.status}` };
+
+    const data = JSON.parse(body || "{}") as { ok?: boolean; description?: string };
+    if (!data.ok) return { ok: false, error: data.description || body || "setWebhook failed" };
+
+    webhookCache.__apexTelegramWebhook = { url: webhookUrl, checkedAt: Date.now() };
+    return { ok: true };
+  } catch (error) {
+    return { ok: false, error: error instanceof Error ? error.message : "setWebhook failed" };
+  }
+}
+
+function getTelegramWebhookUrl(request: Request) {
+  const configured = process.env.TELEGRAM_WEBHOOK_URL?.trim();
+  if (configured) return configured;
+
+  const originHeader = request.headers.get("origin");
+  const forwardedProto = request.headers.get("x-forwarded-proto");
+  const forwardedHost = request.headers.get("x-forwarded-host");
+
+  let origin = originHeader?.startsWith("https://") ? originHeader : "";
+  if (!origin && forwardedProto === "https" && forwardedHost) origin = `https://${forwardedHost}`;
+
+  if (!origin) {
+    const url = new URL(request.url);
+    if (url.protocol === "https:") origin = url.origin;
+  }
+  if (!origin) return null;
+
+  const url = new URL(origin);
+  const previewMatch = url.hostname.match(/^id-preview--(.+)\.(.+)$/);
+  if (previewMatch) {
+    origin = `${url.protocol}//project--${previewMatch[1]}-dev.${previewMatch[2]}`;
+  }
+
+  return `${origin}/api/public/telegram/webhook`;
+}
+
+function deriveTelegramWebhookSecret(token: string) {
+  return createHash("sha256").update(`telegram-webhook:${token}`).digest("base64url");
+}
+
+async function fetchWithTimeout(url: string, init: RequestInit, timeoutMs: number) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    return await fetch(url, { ...init, signal: controller.signal });
+  } finally {
+    clearTimeout(timer);
+  }
+}
 
 function escapeHtml(s: string) {
   return s
