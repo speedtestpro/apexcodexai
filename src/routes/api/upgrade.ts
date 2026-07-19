@@ -149,6 +149,13 @@ function getTelegramWebhookUrl(request: Request) {
     origin = `${url.protocol}//project--${previewMatch[1]}-dev.${previewMatch[2]}`;
   }
 
+  const projectPreviewMatch = url.hostname.match(
+    /^([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})\.lovableproject\.com$/i,
+  );
+  if (projectPreviewMatch) {
+    origin = `https://project--${projectPreviewMatch[1]}-dev.lovable.app`;
+  }
+
   return `${origin}/api/public/telegram/webhook`;
 }
 
