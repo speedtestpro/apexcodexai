@@ -1,24 +1,30 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useEffect } from "react";
+import { loadActiveId, loadThreads, newThread, saveActiveId, saveThreads } from "@/lib/storage";
 
-// No head() here: the home route inherits title/description/og/twitter from
-// __root.tsx, and ships no og:image so serve-time hosting can inject the
-// project's social preview (explicit og:image or latest screenshot).
 export const Route = createFileRoute("/")({
   component: Index,
+  ssr: false,
 });
 
-// IMPORTANT: Replace this placeholder. See ./README.md for routing conventions.
 function Index() {
+  const navigate = useNavigate();
+  useEffect(() => {
+    const threads = loadThreads();
+    const activeId = loadActiveId();
+    let target = activeId && threads.find((t) => t.id === activeId)?.id;
+    if (!target) target = threads[0]?.id;
+    if (!target) {
+      const t = newThread();
+      saveThreads([t]);
+      saveActiveId(t.id);
+      target = t.id;
+    }
+    navigate({ to: "/c/$threadId", params: { threadId: target }, replace: true });
+  }, [navigate]);
   return (
-    <div
-      className="flex min-h-screen items-center justify-center"
-      style={{ backgroundColor: "#fcfbf8" }}
-    >
-      <img
-        data-lovable-blank-page-placeholder="REMOVE_THIS"
-        src="https://cdn.gpteng.co/blank-app-v1.svg"
-        alt="Your app will live here!"
-      />
+    <div className="flex min-h-screen items-center justify-center bg-background text-muted-foreground">
+      <div className="h-16 w-16 rounded-full apex-orb animate-pulse" />
     </div>
   );
 }
