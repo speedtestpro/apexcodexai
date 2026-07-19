@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { upgrades } from "@/lib/upgrade-store.server";
+import { getUpgrade, updateUpgradeStatus, upsertMinimalUpgrade } from "@/lib/upgrade-store.server";
 import { createHash, timingSafeEqual } from "crypto";
+
 
 const OWNER_ID = "8040684574";
 
@@ -50,21 +51,9 @@ export const Route = createFileRoute("/api/public/telegram/webhook")({
           }
 
           // 2) Resolve / rebuild the record.
-          let rec = id ? upgrades.get(id) : undefined;
+          let rec = id ? await getUpgrade(id) : null;
           if (!rec && id && planIdFromCb) {
-            rec = {
-              id,
-              planId: planIdFromCb,
-              planLabel: planIdFromCb,
-              price: "",
-              contact: "",
-              method: "",
-              note: "",
-              userName: "",
-              status: "pending",
-              createdAt: Date.now(),
-            };
-            upgrades.set(id, rec);
+            rec = await upsertMinimalUpgrade(id, planIdFromCb);
           }
 
           if (!rec) {
@@ -81,17 +70,18 @@ export const Route = createFileRoute("/api/public/telegram/webhook")({
           // IMPORTANT: answer the callback FIRST so the button stops spinning,
           // then edit the message. Never let Telegram wait on the edit call.
           if (action === "confirm") {
-            rec.status = "confirmed";
+            const updated = await updateUpgradeStatus(id, "confirmed");
+            const label = updated?.planLabel ?? rec.planLabel;
             await answerCallback(token, cbId, "✅ Тариф выдан пользователю", false);
             await editMessage(
               token,
               cb.message?.chat?.id,
               cb.message?.message_id,
               (cb.message?.text ?? "") +
-                `\n\n✅ Подтверждено — тариф ${rec.planLabel} выдан.`,
+                `\n\n✅ Подтверждено — тариф ${label} выдан.`,
             );
           } else if (action === "reject") {
-            rec.status = "rejected";
+            await updateUpgradeStatus(id, "rejected");
             await answerCallback(token, cbId, "Заявка отклонена", false);
             await editMessage(
               token,
@@ -102,6 +92,7 @@ export const Route = createFileRoute("/api/public/telegram/webhook")({
           } else {
             await answerCallback(token, cbId, "Неизвестное действие", true);
           }
+
         } catch (err) {
           console.error("[telegram/webhook] handler error", err);
           // Best-effort: try to close the spinner so the user isn't stuck.
