@@ -5,6 +5,7 @@ export type ApexModel = {
   gateway: string; // real lovable gateway model
   supportsVision: boolean;
   supportsFiles: boolean;
+  supportsWebSearch?: boolean;
   badge?: string;
 };
 
