@@ -17,6 +17,7 @@ export const APEX_MODELS: ApexModel[] = [
     gateway: "google/gemini-3-flash-preview",
     supportsVision: true,
     supportsFiles: true,
+    supportsWebSearch: true,
     badge: "default",
   },
   {
