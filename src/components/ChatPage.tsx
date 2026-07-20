@@ -129,6 +129,11 @@ export default function ChatPage({ threadId }: { threadId: string }) {
       setError("Достигнут лимит 900 000 токенов на этот чат. Начните новый чат.");
       return;
     }
+    if (!currentPlanObj.models.includes(thread.modelId)) {
+      setError(`Модель "${getModel(thread.modelId).label}" недоступна на тарифе ${currentPlanObj.label}. Смените модель или тариф.`);
+      setPlansOpen(true);
+      return;
+    }
     const userMsg: ChatMessage = {
       id: uid(), role: "user", content: text, attachments: attachments.length ? attachments : undefined,
       createdAt: Date.now(), tokens: estimateTokens(text),
