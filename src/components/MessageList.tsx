@@ -2,12 +2,14 @@ import { useEffect, useRef } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import type { ChatMessage } from "@/lib/storage";
-import { Download, FileText } from "lucide-react";
+import { Download, FileText, Globe } from "lucide-react";
 import { extractProjectFiles, downloadZip } from "@/lib/projectParser";
 
-export default function MessageList({ messages, streamingText, userName }: { messages: ChatMessage[]; streamingText: string; userName: string }) {
+export default function MessageList({ messages, streamingText, userName, streaming, webSearching }: { messages: ChatMessage[]; streamingText: string; userName: string; streaming?: boolean; webSearching?: boolean }) {
   const endRef = useRef<HTMLDivElement>(null);
-  useEffect(() => { endRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages, streamingText]);
+  useEffect(() => { endRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages, streamingText, streaming]);
+
+  const showPlaceholder = streaming && !streamingText;
 
   return (
     <div className="mx-auto max-w-2xl px-3 py-4 flex flex-col gap-5">
@@ -18,6 +20,25 @@ export default function MessageList({ messages, streamingText, userName }: { mes
           userName={userName}
           streaming
         />
+      )}
+      {showPlaceholder && (
+        <div className="flex justify-start">
+          <div className="flex gap-3 max-w-full">
+            <div className="h-7 w-7 shrink-0 rounded-full apex-orb mt-0.5 animate-pulse-orb" />
+            <div className="flex items-center min-h-7">
+              {webSearching ? (
+                <div className="flex items-center gap-2 text-sm">
+                  <Globe className="h-3.5 w-3.5 shrink-0 apex-shimmer-icon" />
+                  <span className="apex-shimmer-text">Поиск в интернете…</span>
+                </div>
+              ) : (
+                <div className="apex-typing" aria-label="печатает">
+                  <span /><span /><span />
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
       )}
       <div ref={endRef} />
     </div>
