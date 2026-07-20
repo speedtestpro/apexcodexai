@@ -282,6 +282,9 @@ export default function ChatPage({ threadId }: { threadId: string }) {
           <Composer
             disabled={streaming || cooldownActive}
             supportsFiles={currentModel.supportsFiles || currentModel.supportsVision}
+            supportsWebSearch={!!currentModel.supportsWebSearch}
+            webSearch={webSearchEnabled}
+            onToggleWebSearch={setWebSearchEnabled}
             onSend={sendMessage}
             onStop={stop}
             streaming={streaming}
