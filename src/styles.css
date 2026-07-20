@@ -149,4 +149,54 @@
     background: radial-gradient(circle at 35% 30%, oklch(0.95 0.15 85), oklch(0.75 0.18 55) 55%, oklch(0.45 0.15 40) 100%);
     box-shadow: 0 0 60px oklch(0.75 0.18 55 / 0.35);
   }
+
+  /* Pulsing orb while thinking */
+  @keyframes apex-orb-pulse {
+    0%, 100% { transform: scale(1); box-shadow: 0 0 40px oklch(0.75 0.18 55 / 0.35); }
+    50% { transform: scale(1.08); box-shadow: 0 0 70px oklch(0.75 0.18 55 / 0.55); }
+  }
+  .animate-pulse-orb { animation: apex-orb-pulse 1.6s ease-in-out infinite; }
+
+  /* Typing dots */
+  .apex-typing { display: inline-flex; gap: 4px; align-items: center; padding: 4px 2px; }
+  .apex-typing span {
+    width: 6px; height: 6px; border-radius: 9999px;
+    background: var(--color-muted-foreground);
+    opacity: 0.5;
+    animation: apex-typing-bounce 1.2s ease-in-out infinite;
+  }
+  .apex-typing span:nth-child(2) { animation-delay: 0.15s; }
+  .apex-typing span:nth-child(3) { animation-delay: 0.3s; }
+  @keyframes apex-typing-bounce {
+    0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+    30% { transform: translateY(-4px); opacity: 1; }
+  }
+
+  /* Web search shimmer text */
+  @keyframes apex-shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+  }
+  .apex-shimmer-text {
+    background: linear-gradient(
+      90deg,
+      var(--color-muted-foreground) 0%,
+      var(--color-muted-foreground) 35%,
+      var(--color-foreground) 50%,
+      var(--color-primary) 60%,
+      var(--color-muted-foreground) 75%,
+      var(--color-muted-foreground) 100%
+    );
+    background-size: 200% 100%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    color: transparent;
+    animation: apex-shimmer 2.2s linear infinite;
+    font-weight: 500;
+  }
+  .apex-shimmer-icon {
+    color: var(--color-primary);
+    animation: apex-orb-pulse 1.8s ease-in-out infinite;
+  }
 }

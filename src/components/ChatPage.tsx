@@ -264,6 +264,8 @@ export default function ChatPage({ threadId }: { threadId: string }) {
               messages={thread?.messages ?? []}
               streamingText={streaming ? streamText : ""}
               userName={settings.userName}
+              streaming={streaming}
+              webSearching={streaming && webSearchEnabled && !!currentModel.supportsWebSearch}
             />
           )}
         </main>
