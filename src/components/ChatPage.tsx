@@ -33,6 +33,7 @@ export default function ChatPage({ threadId }: { threadId: string }) {
   const [streaming, setStreaming] = useState(false);
   const [streamText, setStreamText] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [webSearchEnabled, setWebSearchEnabled] = useState(false);
   const abortRef = useRef<AbortController | null>(null);
 
   // hydrate from localStorage on mount
@@ -128,6 +129,11 @@ export default function ChatPage({ threadId }: { threadId: string }) {
       setError("Достигнут лимит 900 000 токенов на этот чат. Начните новый чат.");
       return;
     }
+    if (!currentPlanObj.models.includes(thread.modelId)) {
+      setError(`Модель "${getModel(thread.modelId).label}" недоступна на тарифе ${currentPlanObj.label}. Смените модель или тариф.`);
+      setPlansOpen(true);
+      return;
+    }
     const userMsg: ChatMessage = {
       id: uid(), role: "user", content: text, attachments: attachments.length ? attachments : undefined,
       createdAt: Date.now(), tokens: estimateTokens(text),
@@ -155,6 +161,7 @@ export default function ChatPage({ threadId }: { threadId: string }) {
           modelId: thread.modelId,
           systemPrompt: settings.systemPrompt,
           userName: settings.userName,
+          webSearch: webSearchEnabled && (getModel(thread.modelId).supportsWebSearch ?? false),
         }),
         signal: ctrl.signal,
       });
@@ -202,7 +209,7 @@ export default function ChatPage({ threadId }: { threadId: string }) {
       setStreamText("");
       abortRef.current = null;
     }
-  }, [thread, session, settings, updateThread, sessionCap]);
+  }, [thread, session, settings, updateThread, sessionCap, webSearchEnabled, currentPlanObj]);
 
   const stop = useCallback(() => {
     abortRef.current?.abort();
@@ -280,6 +287,9 @@ export default function ChatPage({ threadId }: { threadId: string }) {
           <Composer
             disabled={streaming || cooldownActive}
             supportsFiles={currentModel.supportsFiles || currentModel.supportsVision}
+            supportsWebSearch={!!currentModel.supportsWebSearch}
+            webSearch={webSearchEnabled}
+            onToggleWebSearch={setWebSearchEnabled}
             onSend={sendMessage}
             onStop={stop}
             streaming={streaming}

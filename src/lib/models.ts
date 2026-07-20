@@ -5,6 +5,7 @@ export type ApexModel = {
   gateway: string; // real lovable gateway model
   supportsVision: boolean;
   supportsFiles: boolean;
+  supportsWebSearch?: boolean;
   badge?: string;
 };
 
@@ -16,6 +17,7 @@ export const APEX_MODELS: ApexModel[] = [
     gateway: "google/gemini-3-flash-preview",
     supportsVision: true,
     supportsFiles: true,
+    supportsWebSearch: true,
     badge: "default",
   },
   {
@@ -43,6 +45,7 @@ export const APEX_MODELS: ApexModel[] = [
     gateway: "openai/gpt-5.4",
     supportsVision: true,
     supportsFiles: true,
+    supportsWebSearch: true,
   },
   {
     id: "apex-mini",
@@ -51,6 +54,7 @@ export const APEX_MODELS: ApexModel[] = [
     gateway: "openai/gpt-5-mini",
     supportsVision: true,
     supportsFiles: true,
+    supportsWebSearch: true,
   },
   {
     id: "apex-nano",
@@ -76,6 +80,7 @@ export const APEX_MODELS: ApexModel[] = [
     gateway: "google/gemini-3.5-flash",
     supportsVision: true,
     supportsFiles: true,
+    supportsWebSearch: true,
   },
   {
     id: "apex-lite",
