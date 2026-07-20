@@ -57,10 +57,32 @@ export const Route = createFileRoute("/api/chat")({
         }
         const messages = body.messages;
         if (!Array.isArray(messages)) return new Response("messages required", { status: 400 });
-        const model = getModel(body.modelId ?? "apex-flash");
+        const requestedId = body.modelId ?? "apex-flash";
+        const known = APEX_MODELS.find((m) => m.id === requestedId);
+        if (!known) {
+          return new Response(
+            `Модель "${requestedId}" недоступна. Выберите другую модель.`,
+            { status: 400 },
+          );
+        }
+        const model = known;
 
         const gateway = createLovableAiGatewayProvider(key);
-        const system = buildSystem(body.systemPrompt ?? "", body.userName ?? "", model.label);
+        let system = buildSystem(body.systemPrompt ?? "", body.userName ?? "", model.label);
+
+        // Web search — enrich system prompt for supported (middle-tier) models
+        if (body.webSearch && model.supportsWebSearch) {
+          try {
+            const lastUser = [...messages].reverse().find((m) => m.role === "user");
+            const query = (lastUser?.content ?? "").trim();
+            if (query) {
+              const results = await webSearch(query, 5);
+              system = `${system}\n\n${formatWebSearchForPrompt(query, results)}`;
+            }
+          } catch {
+            // fail-open: proceed without web context
+          }
+        }
 
         // Image-generation branch (Apex Vision)
         if (model.gateway.startsWith("openai/gpt-image")) {
