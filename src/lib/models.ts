@@ -45,6 +45,7 @@ export const APEX_MODELS: ApexModel[] = [
     gateway: "openai/gpt-5.4",
     supportsVision: true,
     supportsFiles: true,
+    supportsWebSearch: true,
   },
   {
     id: "apex-mini",
@@ -53,6 +54,7 @@ export const APEX_MODELS: ApexModel[] = [
     gateway: "openai/gpt-5-mini",
     supportsVision: true,
     supportsFiles: true,
+    supportsWebSearch: true,
   },
   {
     id: "apex-nano",
