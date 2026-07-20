@@ -1,7 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { streamText, type ModelMessage } from "ai";
 import { createLovableAiGatewayProvider } from "@/lib/ai-gateway.server";
-import { getModel } from "@/lib/models";
+import { APEX_MODELS, getModel } from "@/lib/models";
+import { webSearch, formatWebSearchForPrompt } from "@/lib/websearch.server";
 
 type InAttachment = { mimeType: string; dataUrl: string; name?: string; kind: "image" | "file" };
 type InMessage = { role: "user" | "assistant" | "system"; content: string; attachments?: InAttachment[] };
@@ -10,6 +11,7 @@ type Body = {
   modelId?: string;
   systemPrompt?: string;
   userName?: string;
+  webSearch?: boolean;
 };
 
 function buildSystem(userSystem: string, userName: string, modelLabel: string) {
