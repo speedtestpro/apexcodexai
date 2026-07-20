@@ -156,6 +156,7 @@ export default function ChatPage({ threadId }: { threadId: string }) {
           modelId: thread.modelId,
           systemPrompt: settings.systemPrompt,
           userName: settings.userName,
+          webSearch: webSearchEnabled && (getModel(thread.modelId).supportsWebSearch ?? false),
         }),
         signal: ctrl.signal,
       });
