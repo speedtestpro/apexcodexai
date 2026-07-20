@@ -25,7 +25,7 @@ async function fileToAttachment(file: File): Promise<ChatFileAttachment> {
   };
 }
 
-export default function Composer({ disabled, supportsFiles, onSend, onStop, streaming }: Props) {
+export default function Composer({ disabled, supportsFiles, supportsWebSearch, webSearch, onToggleWebSearch, onSend, onStop, streaming }: Props) {
   const [text, setText] = useState("");
   const [attachments, setAttachments] = useState<ChatFileAttachment[]>([]);
   const fileRef = useRef<HTMLInputElement>(null);
@@ -83,6 +83,22 @@ export default function Composer({ disabled, supportsFiles, onSend, onStop, stre
             aria-label="Прикрепить"
           >
             <Plus className="h-5 w-5" />
+          </button>
+        )}
+        {supportsWebSearch && (
+          <button
+            onClick={() => onToggleWebSearch?.(!webSearch)}
+            className={`h-10 shrink-0 rounded-full flex items-center gap-1.5 px-3 text-xs font-medium transition ${
+              webSearch
+                ? "bg-primary/15 text-primary border border-primary/40"
+                : "hover:bg-accent text-muted-foreground border border-transparent"
+            }`}
+            aria-pressed={!!webSearch}
+            aria-label="Веб-поиск"
+            title="Веб-поиск"
+          >
+            <Globe className="h-4 w-4" />
+            <span className="hidden sm:inline">Поиск</span>
           </button>
         )}
         <input
