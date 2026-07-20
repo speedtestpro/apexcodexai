@@ -1,10 +1,13 @@
 import { useRef, useState } from "react";
-import { Plus, ArrowUp, Square, X, Image as ImageIcon, FileText, Mic } from "lucide-react";
+import { Plus, ArrowUp, Square, X, Image as ImageIcon, FileText, Mic, Globe } from "lucide-react";
 import type { ChatFileAttachment } from "@/lib/storage";
 
 type Props = {
   disabled: boolean;
   supportsFiles: boolean;
+  supportsWebSearch?: boolean;
+  webSearch?: boolean;
+  onToggleWebSearch?: (v: boolean) => void;
   onSend: (text: string, attachments: ChatFileAttachment[]) => void;
   onStop: () => void;
   streaming: boolean;
