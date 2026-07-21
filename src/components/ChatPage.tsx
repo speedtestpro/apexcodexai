@@ -169,6 +169,16 @@ export default function ChatPage({ threadId }: { threadId: string }) {
         const msg = await res.text().catch(() => "Ошибка запроса");
         throw new Error(msg || `HTTP ${res.status}`);
       }
+      // Extract sources header (base64-encoded JSON) if present
+      let sources: import("@/lib/storage").ChatSource[] | undefined;
+      const srcHeader = res.headers.get("x-apex-sources");
+      if (srcHeader) {
+        try {
+          const json = decodeURIComponent(escape(atob(srcHeader)));
+          const parsed = JSON.parse(json);
+          if (Array.isArray(parsed) && parsed.length) sources = parsed;
+        } catch { /* ignore */ }
+      }
       const reader = res.body.getReader();
       const dec = new TextDecoder();
       let full = "";
@@ -181,6 +191,7 @@ export default function ChatPage({ threadId }: { threadId: string }) {
       }
       const assistant: ChatMessage = {
         id: uid(), role: "assistant", content: full, createdAt: Date.now(), tokens: estimateTokens(full),
+        sources,
       };
       const totalTokens = (userMsg.tokens ?? 0) + (assistant.tokens ?? 0);
       updateThread(thread.id, (t) => ({
