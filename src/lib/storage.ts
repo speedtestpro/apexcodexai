@@ -7,6 +7,12 @@ export type ChatFileAttachment = {
   kind: "image" | "file";
 };
 
+export type ChatSource = {
+  title: string;
+  url: string;
+  snippet?: string;
+};
+
 export type ChatMessage = {
   id: string;
   role: "user" | "assistant" | "system";
@@ -14,6 +20,7 @@ export type ChatMessage = {
   createdAt: number;
   attachments?: ChatFileAttachment[];
   tokens?: number; // rough estimate
+  sources?: ChatSource[];
 };
 
 export type Thread = {

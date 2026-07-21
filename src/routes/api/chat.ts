@@ -69,6 +69,7 @@ export const Route = createFileRoute("/api/chat")({
 
         const gateway = createLovableAiGatewayProvider(key);
         let system = buildSystem(body.systemPrompt ?? "", body.userName ?? "", model.label);
+        let sourcesHeader: string | undefined;
 
         // Web search — enrich system prompt for supported (middle-tier) models
         if (body.webSearch && model.supportsWebSearch) {
@@ -78,6 +79,13 @@ export const Route = createFileRoute("/api/chat")({
             if (query) {
               const results = await webSearch(query, 5);
               system = `${system}\n\n${formatWebSearchForPrompt(query, results)}`;
+              if (results.length) {
+                const payload = JSON.stringify(
+                  results.map((r) => ({ title: r.title, url: r.url, snippet: r.snippet })),
+                );
+                // btoa handles ASCII; escape unicode first
+                sourcesHeader = btoa(unescape(encodeURIComponent(payload)));
+              }
             }
           } catch {
             // fail-open: proceed without web context
@@ -130,7 +138,9 @@ export const Route = createFileRoute("/api/chat")({
             system,
             messages: toModelMessages(messages),
           });
-          return result.toTextStreamResponse();
+          return result.toTextStreamResponse({
+            headers: sourcesHeader ? { "x-apex-sources": sourcesHeader } : undefined,
+          });
         } catch (err) {
           const msg = err instanceof Error ? err.message : "AI error";
           return new Response(msg, { status: 500 });
