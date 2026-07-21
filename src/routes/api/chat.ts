@@ -138,7 +138,9 @@ export const Route = createFileRoute("/api/chat")({
             system,
             messages: toModelMessages(messages),
           });
-          return result.toTextStreamResponse();
+          return result.toTextStreamResponse({
+            headers: sourcesHeader ? { "x-apex-sources": sourcesHeader } : undefined,
+          });
         } catch (err) {
           const msg = err instanceof Error ? err.message : "AI error";
           return new Response(msg, { status: 500 });
