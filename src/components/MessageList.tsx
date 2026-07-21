@@ -1,8 +1,8 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import type { ChatMessage } from "@/lib/storage";
-import { Download, FileText, Globe } from "lucide-react";
+import type { ChatMessage, ChatSource } from "@/lib/storage";
+import { Download, FileText, Globe, ExternalLink } from "lucide-react";
 import { extractProjectFiles, downloadZip } from "@/lib/projectParser";
 
 export default function MessageList({ messages, streamingText, userName, streaming, webSearching }: { messages: ChatMessage[]; streamingText: string; userName: string; streaming?: boolean; webSearching?: boolean }) {
@@ -45,6 +45,82 @@ export default function MessageList({ messages, streamingText, userName, streami
   );
 }
 
+function faviconUrl(url: string) {
+  try {
+    const u = new URL(url);
+    return `https://www.google.com/s2/favicons?domain=${u.hostname}&sz=64`;
+  } catch {
+    return "";
+  }
+}
+
+function hostFrom(url: string) {
+  try { return new URL(url).hostname.replace(/^www\./, ""); } catch { return url; }
+}
+
+function SourcesChips({ sources }: { sources: ChatSource[] }) {
+  const [open, setOpen] = useState(false);
+  const shown = sources.slice(0, 4);
+  const extra = sources.length - shown.length;
+  return (
+    <div className="relative mt-1">
+      <button
+        onClick={() => setOpen((v) => !v)}
+        className="flex items-center gap-1.5 rounded-full border border-border bg-secondary/70 hover:bg-accent transition-colors px-1.5 py-1"
+        aria-label="Показать источники"
+      >
+        <div className="flex -space-x-1.5">
+          {shown.map((s, i) => (
+            <div
+              key={i}
+              className="h-5 w-5 rounded-full bg-background border border-border overflow-hidden flex items-center justify-center"
+              style={{ zIndex: shown.length - i }}
+            >
+              <img
+                src={faviconUrl(s.url)}
+                alt=""
+                className="h-4 w-4"
+                onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = "none"; }}
+              />
+            </div>
+          ))}
+        </div>
+        <span className="text-[11px] text-muted-foreground pr-1.5">
+          {extra > 0 ? `${sources.length} источников` : `${sources.length} ${sources.length === 1 ? "источник" : "источника"}`}
+        </span>
+      </button>
+      {open && (
+        <div className="absolute z-20 mt-2 w-[min(22rem,80vw)] rounded-xl border border-border bg-popover shadow-xl p-2">
+          <div className="text-[11px] text-muted-foreground px-2 py-1">Источники</div>
+          <div className="flex flex-col">
+            {sources.map((s, i) => (
+              <a
+                key={i}
+                href={s.url}
+                target="_blank"
+                rel="noreferrer"
+                className="flex items-start gap-2 rounded-lg px-2 py-2 hover:bg-accent"
+              >
+                <img
+                  src={faviconUrl(s.url)}
+                  alt=""
+                  className="h-4 w-4 mt-0.5 rounded-sm"
+                  onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = "none"; }}
+                />
+                <div className="min-w-0 flex-1">
+                  <div className="text-[13px] text-foreground truncate">{s.title || hostFrom(s.url)}</div>
+                  <div className="text-[11px] text-muted-foreground truncate">{hostFrom(s.url)}</div>
+                </div>
+                <ExternalLink className="h-3.5 w-3.5 text-muted-foreground shrink-0 mt-1" />
+              </a>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function Bubble({ message, userName, streaming }: { message: ChatMessage; userName: string; streaming?: boolean }) {
   const isUser = message.role === "user";
   const files = message.role === "assistant" ? extractProjectFiles(message.content) : [];
@@ -83,6 +159,9 @@ function Bubble({ message, userName, streaming }: { message: ChatMessage; userNa
               <ReactMarkdown remarkPlugins={[remarkGfm]}>{message.content || (streaming ? "…" : "")}</ReactMarkdown>
             )}
           </div>
+          {!isUser && !streaming && message.sources && message.sources.length > 0 && (
+            <SourcesChips sources={message.sources} />
+          )}
           {!isUser && files.length > 0 && !streaming && (
             <button
               onClick={() => downloadZip(`apexcode-project-${message.id.slice(-6)}`, files)}
