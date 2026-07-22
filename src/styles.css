@@ -199,4 +199,36 @@
     color: var(--color-primary);
     animation: apex-orb-pulse 1.8s ease-in-out infinite;
   }
+
+  /* Liquid glass */
+  .apex-glass {
+    background: color-mix(in oklab, var(--color-secondary) 55%, transparent);
+    backdrop-filter: blur(22px) saturate(160%);
+    border: 1px solid color-mix(in oklab, var(--color-foreground) 10%, transparent);
+    box-shadow:
+      inset 0 1px 0 color-mix(in oklab, var(--color-foreground) 12%, transparent),
+      inset 0 -1px 0 color-mix(in oklab, black 30%, transparent),
+      0 20px 40px -20px color-mix(in oklab, black 60%, transparent);
+    position: relative;
+    overflow: hidden;
+  }
+  .apex-glass::before {
+    content: "";
+    position: absolute; inset: 0;
+    background:
+      radial-gradient(120% 60% at 20% 0%, color-mix(in oklab, var(--color-primary) 18%, transparent), transparent 60%),
+      radial-gradient(90% 60% at 100% 100%, color-mix(in oklab, var(--color-foreground) 8%, transparent), transparent 60%);
+    pointer-events: none;
+  }
+  .apex-glass-soft {
+    background: color-mix(in oklab, var(--color-background) 55%, transparent);
+    backdrop-filter: blur(18px) saturate(140%);
+    border-bottom: 1px solid color-mix(in oklab, var(--color-foreground) 8%, transparent) !important;
+  }
+
+  @keyframes apex-deepthink-pulse {
+    0%, 100% { box-shadow: 0 0 0 0 color-mix(in oklab, var(--color-primary) 40%, transparent); }
+    50% { box-shadow: 0 0 0 6px color-mix(in oklab, var(--color-primary) 0%, transparent); }
+  }
+  .apex-deepthink-active { animation: apex-deepthink-pulse 1.8s ease-out infinite; }
 }
