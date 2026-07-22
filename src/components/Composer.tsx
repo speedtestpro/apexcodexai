@@ -27,7 +27,7 @@ async function fileToAttachment(file: File): Promise<ChatFileAttachment> {
   };
 }
 
-export default function Composer({ disabled, supportsFiles, supportsWebSearch, webSearch, onToggleWebSearch, onSend, onStop, streaming }: Props) {
+export default function Composer({ disabled, supportsFiles, supportsWebSearch, webSearch, onToggleWebSearch, deepThink, onToggleDeepThink, onSend, onStop, streaming }: Props) {
   const [text, setText] = useState("");
   const [attachments, setAttachments] = useState<ChatFileAttachment[]>([]);
   const fileRef = useRef<HTMLInputElement>(null);
