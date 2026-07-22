@@ -163,6 +163,7 @@ export default function ChatPage({ threadId }: { threadId: string }) {
           systemPrompt: settings.systemPrompt,
           userName: settings.userName,
           webSearch: webSearchEnabled && (getModel(thread.modelId).supportsWebSearch ?? false),
+          deepThink,
         }),
         signal: ctrl.signal,
       });
