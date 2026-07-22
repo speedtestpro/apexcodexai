@@ -182,6 +182,7 @@ function Bubble({ message, userName, streaming }: { message: ChatMessage; userNa
               ))}
             </div>
           )}
+          {!isUser && think && <ThinkBlock think={think} thinking={thinking} />}
           <div className={
             isUser
               ? "rounded-2xl px-4 py-2.5 bg-secondary text-foreground whitespace-pre-wrap break-words"
@@ -190,7 +191,7 @@ function Bubble({ message, userName, streaming }: { message: ChatMessage; userNa
             {isUser ? (
               <span>{message.content}</span>
             ) : (
-              <ReactMarkdown remarkPlugins={[remarkGfm]}>{message.content || (streaming ? "…" : "")}</ReactMarkdown>
+              <ReactMarkdown remarkPlugins={[remarkGfm]}>{body || (streaming ? "…" : "")}</ReactMarkdown>
             )}
           </div>
           {!isUser && !streaming && message.sources && message.sources.length > 0 && (
