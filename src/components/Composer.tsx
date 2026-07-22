@@ -103,6 +103,20 @@ export default function Composer({ disabled, supportsFiles, supportsWebSearch, w
             <span className="hidden sm:inline">Поиск</span>
           </button>
         )}
+        <button
+          onClick={() => onToggleDeepThink?.(!deepThink)}
+          className={`h-10 shrink-0 rounded-full flex items-center gap-1.5 px-3 text-xs font-medium transition ${
+            deepThink
+              ? "bg-primary/15 text-primary border border-primary/40 apex-deepthink-active"
+              : "hover:bg-accent text-muted-foreground border border-transparent"
+          }`}
+          aria-pressed={!!deepThink}
+          aria-label="Глубокое раздумие"
+          title="Глубокое раздумие"
+        >
+          <Brain className="h-4 w-4" />
+          <span className="hidden sm:inline">Раздумие</span>
+        </button>
         <input
           ref={fileRef}
           type="file"
