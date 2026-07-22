@@ -305,6 +305,8 @@ export default function ChatPage({ threadId }: { threadId: string }) {
             supportsWebSearch={!!currentModel.supportsWebSearch}
             webSearch={webSearchEnabled}
             onToggleWebSearch={setWebSearchEnabled}
+            deepThink={deepThink}
+            onToggleDeepThink={setDeepThink}
             onSend={sendMessage}
             onStop={stop}
             streaming={streaming}
