@@ -246,7 +246,7 @@ export default function ChatPage({ threadId }: { threadId: string }) {
         currentPlan={plan}
       />
       <div className="flex-1 flex flex-col min-w-0">
-        <header className="flex items-center justify-between px-3 py-3 border-b border-border">
+        <header className="apex-glass-soft flex items-center justify-between px-3 py-3">
           <button
             onClick={() => setSidebarOpen(true)}
             className="h-10 w-10 rounded-full bg-secondary hover:bg-accent flex items-center justify-center transition-colors"
