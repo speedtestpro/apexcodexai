@@ -12,6 +12,7 @@ type Body = {
   systemPrompt?: string;
   userName?: string;
   webSearch?: boolean;
+  deepThink?: boolean;
 };
 
 function buildSystem(userSystem: string, userName: string, modelLabel: string) {
