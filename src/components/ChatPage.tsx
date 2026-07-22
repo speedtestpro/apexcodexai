@@ -222,7 +222,7 @@ export default function ChatPage({ threadId }: { threadId: string }) {
       setStreamText("");
       abortRef.current = null;
     }
-  }, [thread, session, settings, updateThread, sessionCap, webSearchEnabled, currentPlanObj]);
+  }, [thread, session, settings, updateThread, sessionCap, webSearchEnabled, deepThink, currentPlanObj]);
 
   const stop = useCallback(() => {
     abortRef.current?.abort();
