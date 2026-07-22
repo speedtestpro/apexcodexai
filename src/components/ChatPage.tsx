@@ -34,6 +34,7 @@ export default function ChatPage({ threadId }: { threadId: string }) {
   const [streamText, setStreamText] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [webSearchEnabled, setWebSearchEnabled] = useState(false);
+  const [deepThink, setDeepThink] = useState(false);
   const abortRef = useRef<AbortController | null>(null);
 
   // hydrate from localStorage on mount
