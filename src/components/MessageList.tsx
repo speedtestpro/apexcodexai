@@ -2,8 +2,41 @@ import { useEffect, useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import type { ChatMessage, ChatSource } from "@/lib/storage";
-import { Download, FileText, Globe, ExternalLink } from "lucide-react";
+import { Download, FileText, Globe, ExternalLink, Brain, ChevronDown } from "lucide-react";
 import { extractProjectFiles, downloadZip } from "@/lib/projectParser";
+
+function splitThink(content: string): { think: string | null; body: string; thinking: boolean } {
+  const openIdx = content.indexOf("<think>");
+  if (openIdx === -1) return { think: null, body: content, thinking: false };
+  const closeIdx = content.indexOf("</think>", openIdx);
+  if (closeIdx === -1) {
+    // still streaming think block
+    return { think: content.slice(openIdx + 7).trim(), body: content.slice(0, openIdx).trim(), thinking: true };
+  }
+  const think = content.slice(openIdx + 7, closeIdx).trim();
+  const body = (content.slice(0, openIdx) + content.slice(closeIdx + 8)).trim();
+  return { think, body, thinking: false };
+}
+
+function ThinkBlock({ think, thinking }: { think: string; thinking: boolean }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="apex-glass rounded-2xl px-3 py-2 mb-2 text-sm">
+      <button onClick={() => setOpen((v) => !v)} className="flex items-center gap-2 w-full text-left">
+        <Brain className={`h-4 w-4 ${thinking ? "apex-shimmer-icon" : "text-primary"}`} />
+        <span className={thinking ? "apex-shimmer-text" : "text-muted-foreground"}>
+          {thinking ? "Глубокое раздумие…" : "Раздумия модели"}
+        </span>
+        <ChevronDown className={`h-3.5 w-3.5 ml-auto text-muted-foreground transition-transform ${open ? "rotate-180" : ""}`} />
+      </button>
+      {open && (
+        <div className="mt-2 pt-2 border-t border-border/50 whitespace-pre-wrap text-muted-foreground text-[13px] leading-relaxed">
+          {think}
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function MessageList({ messages, streamingText, userName, streaming, webSearching }: { messages: ChatMessage[]; streamingText: string; userName: string; streaming?: boolean; webSearching?: boolean }) {
   const endRef = useRef<HTMLDivElement>(null);
