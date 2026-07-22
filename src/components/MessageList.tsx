@@ -156,7 +156,8 @@ function SourcesChips({ sources }: { sources: ChatSource[] }) {
 
 function Bubble({ message, userName, streaming }: { message: ChatMessage; userName: string; streaming?: boolean }) {
   const isUser = message.role === "user";
-  const files = message.role === "assistant" ? extractProjectFiles(message.content) : [];
+  const { think, body, thinking } = !isUser ? splitThink(message.content) : { think: null, body: message.content, thinking: false };
+  const files = message.role === "assistant" ? extractProjectFiles(body) : [];
 
   return (
     <div className={`flex ${isUser ? "justify-end" : "justify-start"}`}>
