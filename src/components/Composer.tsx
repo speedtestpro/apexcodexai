@@ -53,7 +53,7 @@ export default function Composer({ disabled, supportsFiles, supportsWebSearch, w
   }
 
   return (
-    <div className="rounded-3xl bg-secondary border border-border overflow-hidden">
+    <div className="apex-glass rounded-3xl overflow-hidden">
       {attachments.length > 0 && (
         <div className="flex flex-wrap gap-2 p-2 pb-0">
           {attachments.map((a, i) => (
