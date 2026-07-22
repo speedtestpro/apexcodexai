@@ -27,6 +27,7 @@ export const APEX_MODELS: ApexModel[] = [
     gateway: "openai/gpt-5",
     supportsVision: true,
     supportsFiles: true,
+    supportsWebSearch: true,
     badge: "pro",
   },
   {
@@ -36,6 +37,7 @@ export const APEX_MODELS: ApexModel[] = [
     gateway: "openai/gpt-5.5",
     supportsVision: true,
     supportsFiles: true,
+    supportsWebSearch: true,
     badge: "max",
   },
   {

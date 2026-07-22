@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import { Plus, ArrowUp, Square, X, Image as ImageIcon, FileText, Mic, Globe } from "lucide-react";
+import { Plus, ArrowUp, Square, X, Image as ImageIcon, FileText, Mic, Globe, Brain } from "lucide-react";
 import type { ChatFileAttachment } from "@/lib/storage";
 
 type Props = {
@@ -8,6 +8,8 @@ type Props = {
   supportsWebSearch?: boolean;
   webSearch?: boolean;
   onToggleWebSearch?: (v: boolean) => void;
+  deepThink?: boolean;
+  onToggleDeepThink?: (v: boolean) => void;
   onSend: (text: string, attachments: ChatFileAttachment[]) => void;
   onStop: () => void;
   streaming: boolean;
@@ -25,7 +27,7 @@ async function fileToAttachment(file: File): Promise<ChatFileAttachment> {
   };
 }
 
-export default function Composer({ disabled, supportsFiles, supportsWebSearch, webSearch, onToggleWebSearch, onSend, onStop, streaming }: Props) {
+export default function Composer({ disabled, supportsFiles, supportsWebSearch, webSearch, onToggleWebSearch, deepThink, onToggleDeepThink, onSend, onStop, streaming }: Props) {
   const [text, setText] = useState("");
   const [attachments, setAttachments] = useState<ChatFileAttachment[]>([]);
   const fileRef = useRef<HTMLInputElement>(null);
@@ -51,7 +53,7 @@ export default function Composer({ disabled, supportsFiles, supportsWebSearch, w
   }
 
   return (
-    <div className="rounded-3xl bg-secondary border border-border overflow-hidden">
+    <div className="apex-glass rounded-3xl overflow-hidden">
       {attachments.length > 0 && (
         <div className="flex flex-wrap gap-2 p-2 pb-0">
           {attachments.map((a, i) => (
@@ -101,6 +103,20 @@ export default function Composer({ disabled, supportsFiles, supportsWebSearch, w
             <span className="hidden sm:inline">Поиск</span>
           </button>
         )}
+        <button
+          onClick={() => onToggleDeepThink?.(!deepThink)}
+          className={`h-10 shrink-0 rounded-full flex items-center gap-1.5 px-3 text-xs font-medium transition ${
+            deepThink
+              ? "bg-primary/15 text-primary border border-primary/40 apex-deepthink-active"
+              : "hover:bg-accent text-muted-foreground border border-transparent"
+          }`}
+          aria-pressed={!!deepThink}
+          aria-label="Глубокое раздумие"
+          title="Глубокое раздумие"
+        >
+          <Brain className="h-4 w-4" />
+          <span className="hidden sm:inline">Раздумие</span>
+        </button>
         <input
           ref={fileRef}
           type="file"

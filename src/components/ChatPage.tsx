@@ -34,6 +34,7 @@ export default function ChatPage({ threadId }: { threadId: string }) {
   const [streamText, setStreamText] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [webSearchEnabled, setWebSearchEnabled] = useState(false);
+  const [deepThink, setDeepThink] = useState(false);
   const abortRef = useRef<AbortController | null>(null);
 
   // hydrate from localStorage on mount
@@ -162,6 +163,7 @@ export default function ChatPage({ threadId }: { threadId: string }) {
           systemPrompt: settings.systemPrompt,
           userName: settings.userName,
           webSearch: webSearchEnabled && (getModel(thread.modelId).supportsWebSearch ?? false),
+          deepThink,
         }),
         signal: ctrl.signal,
       });
@@ -220,7 +222,7 @@ export default function ChatPage({ threadId }: { threadId: string }) {
       setStreamText("");
       abortRef.current = null;
     }
-  }, [thread, session, settings, updateThread, sessionCap, webSearchEnabled, currentPlanObj]);
+  }, [thread, session, settings, updateThread, sessionCap, webSearchEnabled, deepThink, currentPlanObj]);
 
   const stop = useCallback(() => {
     abortRef.current?.abort();
@@ -244,7 +246,7 @@ export default function ChatPage({ threadId }: { threadId: string }) {
         currentPlan={plan}
       />
       <div className="flex-1 flex flex-col min-w-0">
-        <header className="flex items-center justify-between px-3 py-3 border-b border-border">
+        <header className="apex-glass-soft flex items-center justify-between px-3 py-3">
           <button
             onClick={() => setSidebarOpen(true)}
             className="h-10 w-10 rounded-full bg-secondary hover:bg-accent flex items-center justify-center transition-colors"
@@ -303,6 +305,8 @@ export default function ChatPage({ threadId }: { threadId: string }) {
             supportsWebSearch={!!currentModel.supportsWebSearch}
             webSearch={webSearchEnabled}
             onToggleWebSearch={setWebSearchEnabled}
+            deepThink={deepThink}
+            onToggleDeepThink={setDeepThink}
             onSend={sendMessage}
             onStop={stop}
             streaming={streaming}
