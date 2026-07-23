@@ -94,7 +94,7 @@ export const APEX_MODELS: ApexModel[] = [
   },
 ];
 
-export const DEFAULT_MODEL_ID = "apex-flash";
+export const DEFAULT_MODEL_ID = "apex-mini";
 
 export function getModel(id: string): ApexModel {
   return APEX_MODELS.find((m) => m.id === id) ?? APEX_MODELS[0];
