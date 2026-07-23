@@ -38,6 +38,11 @@ export type Settings = {
   systemPrompt: string;
   temperature: number;
   companyPersona: boolean;
+  responseLanguage: "auto" | "ru" | "en";
+  density: "comfortable" | "compact";
+  showSources: boolean;
+  autoDeepThink: boolean;
+  sendOnEnter: boolean;
 };
 
 export type SessionUsage = {
@@ -59,6 +64,11 @@ export const DEFAULT_SETTINGS: Settings = {
   systemPrompt: "",
   temperature: 0.7,
   companyPersona: true,
+  responseLanguage: "auto",
+  density: "comfortable",
+  showSources: true,
+  autoDeepThink: false,
+  sendOnEnter: true,
 };
 
 function safe<T>(fn: () => T, fallback: T): T {
