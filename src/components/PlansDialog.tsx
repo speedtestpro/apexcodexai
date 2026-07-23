@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { X, Check, Lock, Crown, Sparkles, Zap, Rocket } from "lucide-react";
+import { X, Check, Lock, Crown, Sparkles, Zap, Rocket, Users, Building2 } from "lucide-react";
 import { PLANS, type PlanId, type Plan } from "@/lib/plans";
 
 type Props = {
@@ -15,6 +15,8 @@ const ICONS: Record<PlanId, React.ComponentType<{ className?: string }>> = {
   plus: Zap,
   pro: Rocket,
   max: Crown,
+  team: Users,
+  enterprise: Building2,
 };
 
 export default function PlansDialog({ open, onClose, currentPlan, userName, onSelected }: Props) {
