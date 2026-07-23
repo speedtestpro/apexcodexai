@@ -1,4 +1,4 @@
-export type PlanId = "free" | "plus" | "pro" | "max";
+export type PlanId = "free" | "plus" | "pro" | "max" | "team" | "enterprise";
 
 export type Plan = {
   id: PlanId;
@@ -77,6 +77,42 @@ export const PLANS: Plan[] = [
       "Персональная поддержка",
     ],
     accent: "from-fuchsia-500/40 to-fuchsia-500/10",
+  },
+  {
+    id: "team",
+    label: "Team",
+    price: "$79",
+    priceUsd: 79,
+    sessionCap: 96_000,
+    models: [
+      "apex-nano", "apex-lite", "apex-mini", "apex-flash", "apex-sonic",
+      "apex-vision", "apex-pro", "apex-reasoner", "apex-ultra",
+    ],
+    features: [
+      "96 000 токенов на сессию",
+      "До 5 участников в рабочем пространстве",
+      "Общая история и проекты команды",
+      "Гибкое распределение лимитов",
+    ],
+    accent: "from-emerald-500/40 to-emerald-500/10",
+  },
+  {
+    id: "enterprise",
+    label: "Enterprise",
+    price: "$199",
+    priceUsd: 199,
+    sessionCap: 200_000,
+    models: [
+      "apex-nano", "apex-lite", "apex-mini", "apex-flash", "apex-sonic",
+      "apex-vision", "apex-pro", "apex-reasoner", "apex-ultra",
+    ],
+    features: [
+      "200 000 токенов на сессию",
+      "Безлимитные участники и SSO",
+      "Приватный контур и SLA 99.9%",
+      "Выделенный менеджер и обучение",
+    ],
+    accent: "from-rose-500/40 to-rose-500/10",
   },
 ];
 
