@@ -100,6 +100,56 @@ export default function SettingsDialog({ open, onClose, settings, onSave }: { op
             />
             <div className="flex justify-between text-[10px] text-muted-foreground"><span>Точнее</span><span>Свободнее</span></div>
           </div>
+          <div className="space-y-1.5">
+            <label className="text-sm font-medium">Язык ответов</label>
+            <div className="grid grid-cols-3 gap-1 rounded-xl bg-muted/40 p-1 text-xs">
+              {([
+                { id: "auto", label: "Авто" },
+                { id: "ru", label: "Русский" },
+                { id: "en", label: "English" },
+              ] as const).map((o) => (
+                <button
+                  key={o.id}
+                  onClick={() => setLocal({ ...local, responseLanguage: o.id })}
+                  className={`rounded-lg py-2 transition ${local.responseLanguage === o.id ? "bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"}`}
+                >{o.label}</button>
+              ))}
+            </div>
+          </div>
+          <div className="space-y-1.5">
+            <label className="text-sm font-medium">Плотность интерфейса</label>
+            <div className="grid grid-cols-2 gap-1 rounded-xl bg-muted/40 p-1 text-xs">
+              {([
+                { id: "comfortable", label: "Удобная" },
+                { id: "compact", label: "Компактная" },
+              ] as const).map((o) => (
+                <button
+                  key={o.id}
+                  onClick={() => setLocal({ ...local, density: o.id })}
+                  className={`rounded-lg py-2 transition ${local.density === o.id ? "bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"}`}
+                >{o.label}</button>
+              ))}
+            </div>
+          </div>
+          {([
+            { key: "autoDeepThink", label: "Глубокое раздумие по умолчанию", desc: "Включать режим <think> для каждого нового чата." },
+            { key: "showSources", label: "Показывать источники", desc: "Кружочки-фавиконки под ответами с веб‑поиском." },
+            { key: "sendOnEnter", label: "Отправка по Enter", desc: "Shift+Enter — новая строка." },
+            { key: "companyPersona", label: "Персона ApexCode", desc: "Модель представляется как ApexCode от Seulop." },
+          ] as const).map((t) => (
+            <label key={t.key} className="flex items-start justify-between gap-3 rounded-xl border border-border p-3">
+              <div className="min-w-0">
+                <div className="text-sm font-medium">{t.label}</div>
+                <div className="text-xs text-muted-foreground mt-0.5">{t.desc}</div>
+              </div>
+              <input
+                type="checkbox"
+                checked={local[t.key] as boolean}
+                onChange={(e) => setLocal({ ...local, [t.key]: e.target.checked })}
+                className="mt-1 h-4 w-4 accent-primary shrink-0"
+              />
+            </label>
+          ))}
           <div className="rounded-xl border border-border p-3 bg-muted/40">
             <div className="text-xs text-muted-foreground">
               ApexCode — продукт компании <span className="text-foreground font-medium">Seulop</span>.
