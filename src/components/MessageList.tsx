@@ -191,7 +191,7 @@ function Bubble({ message, userName, streaming }: { message: ChatMessage; userNa
             {isUser ? (
               <span>{message.content}</span>
             ) : (
-              <ReactMarkdown remarkPlugins={[remarkGfm]}>{body || (streaming ? "…" : "")}</ReactMarkdown>
+              <ReactMarkdown remarkPlugins={[remarkGfm]} urlTransform={(url) => url}>{body || (streaming ? "…" : "")}</ReactMarkdown>
             )}
           </div>
           {!isUser && !streaming && message.sources && message.sources.length > 0 && (
