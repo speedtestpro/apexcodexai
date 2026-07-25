@@ -33,7 +33,7 @@ export default function ModelPicker({
         <ChevronDown className="h-4 w-4 text-muted-foreground" />
       </button>
       {open && (
-        <div className="apex-glass absolute left-1/2 -translate-x-1/2 top-full mt-2 w-[300px] max-h-[70vh] overflow-y-auto rounded-2xl shadow-xl z-30 p-1.5">
+        <div className="apex-glass fixed left-1/2 -translate-x-1/2 top-16 w-[min(320px,92vw)] max-h-[min(70vh,560px)] overflow-y-auto overscroll-contain rounded-2xl shadow-xl z-50 p-1.5" style={{ WebkitOverflowScrolling: "touch" }}>
           {APEX_MODELS.map((m) => {
             const locked = !allowedIds.includes(m.id);
             return (
