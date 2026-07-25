@@ -102,17 +102,28 @@ export default function PlansDialog({ open, onClose, currentPlan, userName, onSe
       >
         <div className="flex items-center justify-between p-4 border-b border-border sticky top-0 bg-card z-10">
           <div>
-            <div className="font-serif text-xl">{checkout ? `Оплата · ${checkout.label}` : "Тарифы ApexCode"}</div>
+            <div className="font-serif text-xl">{checkout ? `Оплата · ${checkout.label}` : compare ? "Сравнение тарифов" : "Тарифы ApexCode"}</div>
             <div className="text-xs text-muted-foreground">
-              {checkout ? "Заявка уйдёт менеджеру в Telegram" : "Выберите подходящий план"}
+              {checkout ? "Заявка уйдёт менеджеру в Telegram" : compare ? "Что входит в каждый план" : "Выберите подходящий план"}
             </div>
           </div>
-          <button onClick={close} className="h-9 w-9 rounded-full hover:bg-accent flex items-center justify-center" aria-label="Закрыть">
-            <X className="h-4 w-4" />
-          </button>
+          <div className="flex items-center gap-2">
+            {!checkout && (
+              <button
+                onClick={() => setCompare((v) => !v)}
+                className="hidden sm:flex items-center gap-1.5 h-9 px-3 rounded-full bg-secondary hover:bg-accent text-xs font-medium"
+              >
+                <Table2 className="h-3.5 w-3.5" />
+                {compare ? "Карточки" : "Сравнить"}
+              </button>
+            )}
+            <button onClick={close} className="h-9 w-9 rounded-full hover:bg-accent flex items-center justify-center" aria-label="Закрыть">
+              <X className="h-4 w-4" />
+            </button>
+          </div>
         </div>
 
-        {!checkout && (
+        {!checkout && !compare && (
           <div className="p-4 grid gap-3 sm:grid-cols-2">
             {PLANS.map((p) => {
               const Icon = ICONS[p.id];
@@ -155,8 +166,100 @@ export default function PlansDialog({ open, onClose, currentPlan, userName, onSe
                 </div>
               );
             })}
+            <button
+              onClick={() => setCompare(true)}
+              className="sm:hidden rounded-2xl border border-border py-3 text-sm font-medium flex items-center justify-center gap-2 hover:bg-accent"
+            >
+              <Table2 className="h-4 w-4" /> Сравнить тарифы
+            </button>
           </div>
         )}
+
+        {!checkout && compare && (
+          <div className="p-4 overflow-x-auto">
+            <table className="w-full text-xs border-separate border-spacing-0 min-w-[560px]">
+              <thead>
+                <tr>
+                  <th className="text-left p-2 sticky left-0 bg-card z-10 font-medium text-muted-foreground">Возможность</th>
+                  {PLANS.map((p) => (
+                    <th key={p.id} className={`p-2 text-center font-serif text-base ${p.id === currentPlan ? "text-primary" : ""}`}>
+                      <div>{p.label}</div>
+                      <div className="text-[11px] text-muted-foreground font-sans">{p.price}{p.priceUsd > 0 && "/мес"}</div>
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td className="p-2 sticky left-0 bg-card text-muted-foreground">Токенов на сессию</td>
+                  {PLANS.map((p) => (
+                    <td key={p.id} className="p-2 text-center font-medium">{p.sessionCap.toLocaleString("ru-RU")}</td>
+                  ))}
+                </tr>
+                <tr>
+                  <td className="p-2 sticky left-0 bg-card text-muted-foreground">Доступно моделей</td>
+                  {PLANS.map((p) => (
+                    <td key={p.id} className="p-2 text-center font-medium">{p.models.length} / {APEX_MODELS.length}</td>
+                  ))}
+                </tr>
+                {APEX_MODELS.map((m) => (
+                  <tr key={m.id} className="border-t border-border/50">
+                    <td className="p-2 sticky left-0 bg-card">{m.label}</td>
+                    {PLANS.map((p) => (
+                      <td key={p.id} className="p-2 text-center">
+                        {p.models.includes(m.id) ? (
+                          <Check className="h-3.5 w-3.5 text-primary inline" />
+                        ) : (
+                          <Minus className="h-3.5 w-3.5 text-muted-foreground/50 inline" />
+                        )}
+                      </td>
+                    ))}
+                  </tr>
+                ))}
+                {[
+                  { k: "Веб-поиск", test: (p: Plan) => p.models.some((id) => APEX_MODELS.find((m) => m.id === id)?.supportsWebSearch) },
+                  { k: "Глубокое раздумие", test: () => true },
+                  { k: "Генерация .zip проектов", test: (p: Plan) => p.id !== "free" },
+                  { k: "Приоритетная очередь", test: (p: Plan) => p.priceUsd >= 9 },
+                  { k: "Команда / SSO", test: (p: Plan) => p.id === "team" || p.id === "enterprise" },
+                  { k: "SLA 99.9%", test: (p: Plan) => p.id === "enterprise" },
+                ].map((row) => (
+                  <tr key={row.k} className="border-t border-border/50">
+                    <td className="p-2 sticky left-0 bg-card text-muted-foreground">{row.k}</td>
+                    {PLANS.map((p) => (
+                      <td key={p.id} className="p-2 text-center">
+                        {row.test(p) ? (
+                          <Check className="h-3.5 w-3.5 text-primary inline" />
+                        ) : (
+                          <Minus className="h-3.5 w-3.5 text-muted-foreground/50 inline" />
+                        )}
+                      </td>
+                    ))}
+                  </tr>
+                ))}
+                <tr className="border-t border-border/50">
+                  <td className="p-2 sticky left-0 bg-card" />
+                  {PLANS.map((p) => {
+                    const isCurrent = p.id === currentPlan;
+                    return (
+                      <td key={p.id} className="p-2 text-center">
+                        <button
+                          disabled={isCurrent}
+                          onClick={() => setCheckout(p)}
+                          className={`w-full rounded-lg py-1.5 text-[11px] font-medium ${isCurrent ? "bg-secondary text-muted-foreground" : "bg-primary text-primary-foreground hover:opacity-90"}`}
+                        >
+                          {isCurrent ? "Активен" : "Выбрать"}
+                        </button>
+                      </td>
+                    );
+                  })}
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        )}
+
+
 
         {checkout && !sent && (
           <div className="p-4 space-y-4">
