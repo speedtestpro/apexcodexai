@@ -70,7 +70,7 @@ export const APEX_MODELS: ApexModel[] = [
     id: "apex-vision",
     label: "Apex Vision",
     description: "Генерация изображений по описанию.",
-    gateway: "openai/gpt-image-1-mini",
+    gateway: "openai/gpt-image-2",
     supportsVision: true,
     supportsFiles: true,
     badge: "image",
@@ -91,6 +91,16 @@ export const APEX_MODELS: ApexModel[] = [
     gateway: "google/gemini-3.1-flash-lite",
     supportsVision: true,
     supportsFiles: true,
+  },
+  {
+    id: "apex-quasar",
+    label: "Apex Quasar",
+    description: "Флагман нового поколения для сложного кода и рассуждений.",
+    gateway: "openai/gpt-5.6-sol",
+    supportsVision: true,
+    supportsFiles: true,
+    supportsWebSearch: true,
+    badge: "new",
   },
 ];
 
