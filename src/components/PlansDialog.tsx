@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
-import { X, Check, Lock, Crown, Sparkles, Zap, Rocket, Users, Building2 } from "lucide-react";
+import { X, Check, Lock, Crown, Sparkles, Zap, Rocket, Users, Building2, Table2, Minus } from "lucide-react";
 import { PLANS, type PlanId, type Plan } from "@/lib/plans";
+import { APEX_MODELS } from "@/lib/models";
 
 type Props = {
   open: boolean;
