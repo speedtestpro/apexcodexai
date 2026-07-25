@@ -22,6 +22,7 @@ const ICONS: Record<PlanId, React.ComponentType<{ className?: string }>> = {
 
 export default function PlansDialog({ open, onClose, currentPlan, userName, onSelected }: Props) {
   const [checkout, setCheckout] = useState<Plan | null>(null);
+  const [compare, setCompare] = useState(false);
   const [contact, setContact] = useState("");
   const [method, setMethod] = useState("Карта");
   const [note, setNote] = useState("");
