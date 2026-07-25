@@ -125,14 +125,14 @@ export const Route = createFileRoute("/api/chat")({
         }
 
         // Image-generation branch (Apex Vision)
-        if (model.gateway.startsWith("openai/gpt-image")) {
+        if (model.gateway.startsWith("openai/gpt-image") || model.gateway.includes("image")) {
           try {
             const lastUser = [...messages].reverse().find((m) => m.role === "user");
             const prompt = (lastUser?.content ?? "").trim() || "beautiful abstract art";
             const imgRes = await fetch("https://ai.gateway.lovable.dev/v1/images/generations", {
               method: "POST",
               headers: {
-                "Lovable-API-Key": key,
+                Authorization: `Bearer ${key}`,
                 "Content-Type": "application/json",
               },
               body: JSON.stringify({
@@ -143,7 +143,11 @@ export const Route = createFileRoute("/api/chat")({
             });
             if (!imgRes.ok) {
               const t = await imgRes.text().catch(() => "");
-              return new Response(`Image error: ${t}`, { status: imgRes.status });
+              console.error("[apex vision] image gen failed", imgRes.status, t);
+              return new Response(
+                `Не удалось сгенерировать изображение (${imgRes.status}). ${t.slice(0, 300)}`,
+                { status: imgRes.status },
+              );
             }
             const data = (await imgRes.json()) as {
               data?: Array<{ b64_json?: string; url?: string }>;
@@ -152,14 +156,15 @@ export const Route = createFileRoute("/api/chat")({
             const src = first?.b64_json
               ? `data:image/png;base64,${first.b64_json}`
               : first?.url ?? "";
-            const body = src
+            const out = src
               ? `Готово ✨\n\n![image](${src})`
               : "Не удалось сгенерировать изображение.";
-            return new Response(body, {
+            return new Response(out, {
               headers: { "content-type": "text/plain; charset=utf-8" },
             });
           } catch (err) {
             const msg = err instanceof Error ? err.message : "Image error";
+            console.error("[apex vision] exception", msg);
             return new Response(msg, { status: 500 });
           }
         }

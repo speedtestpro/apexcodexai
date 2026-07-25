@@ -68,11 +68,11 @@ export const PLANS: Plan[] = [
     sessionCap: 64_000,
     models: [
       "apex-nano", "apex-lite", "apex-mini", "apex-flash", "apex-sonic",
-      "apex-vision", "apex-pro", "apex-reasoner", "apex-ultra",
+      "apex-vision", "apex-pro", "apex-reasoner", "apex-ultra", "apex-quasar",
     ],
     features: [
       "64 000 токенов на сессию",
-      "Все 9 моделей — включая Ultra",
+      "Все 10 моделей — включая Ultra и Quasar",
       "Максимальный приоритет",
       "Персональная поддержка",
     ],
@@ -86,7 +86,7 @@ export const PLANS: Plan[] = [
     sessionCap: 96_000,
     models: [
       "apex-nano", "apex-lite", "apex-mini", "apex-flash", "apex-sonic",
-      "apex-vision", "apex-pro", "apex-reasoner", "apex-ultra",
+      "apex-vision", "apex-pro", "apex-reasoner", "apex-ultra", "apex-quasar",
     ],
     features: [
       "96 000 токенов на сессию",
@@ -104,7 +104,7 @@ export const PLANS: Plan[] = [
     sessionCap: 200_000,
     models: [
       "apex-nano", "apex-lite", "apex-mini", "apex-flash", "apex-sonic",
-      "apex-vision", "apex-pro", "apex-reasoner", "apex-ultra",
+      "apex-vision", "apex-pro", "apex-reasoner", "apex-ultra", "apex-quasar",
     ],
     features: [
       "200 000 токенов на сессию",
