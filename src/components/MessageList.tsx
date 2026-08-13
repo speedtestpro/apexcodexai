@@ -3,6 +3,7 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import type { ChatMessage, ChatSource } from "@/lib/storage";
 import { Download, FileText, Globe, ExternalLink, Brain, ChevronDown } from "lucide-react";
+import GeneratedImage from "./GeneratedImage";
 import { extractProjectFiles, downloadZip } from "@/lib/projectParser";
 
 function splitThink(content: string): { think: string | null; body: string; thinking: boolean } {
@@ -191,7 +192,14 @@ function Bubble({ message, userName, streaming }: { message: ChatMessage; userNa
             {isUser ? (
               <span>{message.content}</span>
             ) : (
-              <ReactMarkdown remarkPlugins={[remarkGfm]} urlTransform={(url) => url}>{body || (streaming ? "…" : "")}</ReactMarkdown>
+              <ReactMarkdown
+                remarkPlugins={[remarkGfm]}
+                urlTransform={(url) => url}
+                components={{
+                  img: ({ src, alt }) => <GeneratedImage src={String(src ?? "")} alt={alt ?? "Изображение"} />,
+                  p: ({ children }) => <p>{children}</p>,
+                }}
+              >{body || (streaming ? "…" : "")}</ReactMarkdown>
             )}
           </div>
           {!isUser && !streaming && message.sources && message.sources.length > 0 && (
