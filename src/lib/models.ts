@@ -63,7 +63,7 @@ export const APEX_MODELS: ApexModel[] = [
     label: "Apex Nano",
     description: "Молниеносный, короткие ответы.",
     gateway: "openai/gpt-5-nano",
-    supportsVision: true,
+    supportsVision: false,
     supportsFiles: false,
   },
   {
@@ -89,7 +89,7 @@ export const APEX_MODELS: ApexModel[] = [
     label: "Apex Lite",
     description: "Самый экономичный.",
     gateway: "google/gemini-3.1-flash-lite",
-    supportsVision: true,
+    supportsVision: false,
     supportsFiles: true,
   },
   {
