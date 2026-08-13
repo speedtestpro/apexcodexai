@@ -5,6 +5,7 @@ import type { ChatFileAttachment } from "@/lib/storage";
 type Props = {
   disabled: boolean;
   supportsFiles: boolean;
+  supportsVision?: boolean;
   supportsWebSearch?: boolean;
   webSearch?: boolean;
   onToggleWebSearch?: (v: boolean) => void;
@@ -27,20 +28,24 @@ async function fileToAttachment(file: File): Promise<ChatFileAttachment> {
   };
 }
 
-export default function Composer({ disabled, supportsFiles, supportsWebSearch, webSearch, onToggleWebSearch, deepThink, onToggleDeepThink, onSend, onStop, streaming }: Props) {
+export default function Composer({ disabled, supportsFiles, supportsVision, supportsWebSearch, webSearch, onToggleWebSearch, deepThink, onToggleDeepThink, onSend, onStop, streaming }: Props) {
   const [text, setText] = useState("");
   const [attachments, setAttachments] = useState<ChatFileAttachment[]>([]);
+  const [hint, setHint] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   const taRef = useRef<HTMLTextAreaElement>(null);
 
   async function onPickFiles(files: FileList | null) {
     if (!files) return;
     const converted: ChatFileAttachment[] = [];
+    let blocked = false;
     for (const f of Array.from(files)) {
       if (f.size > 8 * 1024 * 1024) continue; // 8MB
+      if (f.type.startsWith("image/") && !supportsVision) { blocked = true; continue; }
       converted.push(await fileToAttachment(f));
     }
     setAttachments((prev) => [...prev, ...converted]);
+    setHint(blocked ? "Эта модель не умеет смотреть фото — выберите модель с меткой «Смотрит фото»." : null);
   }
 
   function submit() {
@@ -76,6 +81,9 @@ export default function Composer({ disabled, supportsFiles, supportsWebSearch, w
             </div>
           ))}
         </div>
+      )}
+      {hint && (
+        <div className="px-3 pt-2 text-[11px] text-muted-foreground">{hint}</div>
       )}
       <div className="flex items-end gap-1 p-2">
         {supportsFiles && (
@@ -122,7 +130,7 @@ export default function Composer({ disabled, supportsFiles, supportsWebSearch, w
           type="file"
           multiple
           hidden
-          accept="image/*,.pdf,.txt,.md,.json,.csv,.js,.ts,.tsx,.py,.doc,.docx"
+          accept={supportsVision ? "image/*,.pdf" : ".pdf,.txt,.md,.json,.csv,.js,.ts,.tsx,.py,.doc,.docx"}
           onChange={(e) => onPickFiles(e.target.files)}
         />
         <textarea
