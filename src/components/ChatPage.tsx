@@ -302,6 +302,7 @@ export default function ChatPage({ threadId }: { threadId: string }) {
           <Composer
             disabled={streaming || cooldownActive}
             supportsFiles={currentModel.supportsFiles || currentModel.supportsVision}
+            supportsVision={currentModel.supportsVision}
             supportsWebSearch={!!currentModel.supportsWebSearch}
             webSearch={webSearchEnabled}
             onToggleWebSearch={setWebSearchEnabled}
