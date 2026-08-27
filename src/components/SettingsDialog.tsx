@@ -70,6 +70,7 @@ export default function SettingsDialog({ open, onClose, settings, onSave }: { op
             ))}
           </div>
         </div>
+        {tab === "compare" && <ModelCompare />}
         {tab === "settings" && (
         <div className="p-4 space-y-5">
           <div className="space-y-1.5">
