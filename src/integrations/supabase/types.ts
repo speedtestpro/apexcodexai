@@ -14,6 +14,45 @@ export type Database = {
   }
   public: {
     Tables: {
+      api_keys: {
+        Row: {
+          created_at: string
+          id: string
+          key: string
+          label: string
+          last_used_at: string | null
+          plan_id: string
+          requests_used: number
+          revoked: boolean
+          tokens_used: number
+          upgrade_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          key: string
+          label?: string
+          last_used_at?: string | null
+          plan_id?: string
+          requests_used?: number
+          revoked?: boolean
+          tokens_used?: number
+          upgrade_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          key?: string
+          label?: string
+          last_used_at?: string | null
+          plan_id?: string
+          requests_used?: number
+          revoked?: boolean
+          tokens_used?: number
+          upgrade_id?: string | null
+        }
+        Relationships: []
+      }
       upgrade_requests: {
         Row: {
           contact: string
