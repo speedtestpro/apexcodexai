@@ -52,11 +52,12 @@ export default function SettingsDialog({ open, onClose, settings, onSave }: { op
           </button>
         </div>
         <div className="px-4 pt-3">
-          <div className="grid grid-cols-3 gap-1 rounded-xl bg-muted/40 p-1 text-xs">
+          <div className="grid grid-cols-4 gap-1 rounded-xl bg-muted/40 p-1 text-[11px]">
             {([
               { id: "settings", label: "Общие", icon: Settings2 },
+              { id: "compare", label: "Сравнение", icon: Scale },
               { id: "api", label: "API", icon: KeyRound },
-              { id: "docs", label: "Документация", icon: BookOpen },
+              { id: "docs", label: "Доки", icon: BookOpen },
             ] as const).map((t) => (
               <button
                 key={t.id}
