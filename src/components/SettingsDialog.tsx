@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
-import { X, Copy, RefreshCw, Check, KeyRound, BookOpen, Settings2 } from "lucide-react";
+import { X, Copy, RefreshCw, Check, KeyRound, BookOpen, Settings2, Scale } from "lucide-react";
 import type { Settings } from "@/lib/storage";
+import ModelCompare from "./ModelCompare";
 
 export default function SettingsDialog({ open, onClose, settings, onSave }: { open: boolean; onClose: () => void; settings: Settings; onSave: (s: Settings) => void }) {
   const [local, setLocal] = useState<Settings>(settings);
-  const [tab, setTab] = useState<"settings" | "api" | "docs">("settings");
+  const [tab, setTab] = useState<"settings" | "api" | "docs" | "compare">("settings");
   const [apiKey, setApiKey] = useState<string>("");
   const [copied, setCopied] = useState(false);
   useEffect(() => { setLocal(settings); }, [settings, open]);
@@ -51,11 +52,12 @@ export default function SettingsDialog({ open, onClose, settings, onSave }: { op
           </button>
         </div>
         <div className="px-4 pt-3">
-          <div className="grid grid-cols-3 gap-1 rounded-xl bg-muted/40 p-1 text-xs">
+          <div className="grid grid-cols-4 gap-1 rounded-xl bg-muted/40 p-1 text-[11px]">
             {([
               { id: "settings", label: "Общие", icon: Settings2 },
+              { id: "compare", label: "Сравнение", icon: Scale },
               { id: "api", label: "API", icon: KeyRound },
-              { id: "docs", label: "Документация", icon: BookOpen },
+              { id: "docs", label: "Доки", icon: BookOpen },
             ] as const).map((t) => (
               <button
                 key={t.id}
@@ -68,6 +70,7 @@ export default function SettingsDialog({ open, onClose, settings, onSave }: { op
             ))}
           </div>
         </div>
+        {tab === "compare" && <ModelCompare />}
         {tab === "settings" && (
         <div className="p-4 space-y-5">
           <div className="space-y-1.5">
