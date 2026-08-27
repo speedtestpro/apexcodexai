@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
-import { X, Copy, RefreshCw, Check, KeyRound, BookOpen, Settings2 } from "lucide-react";
+import { X, Copy, RefreshCw, Check, KeyRound, BookOpen, Settings2, Scale } from "lucide-react";
 import type { Settings } from "@/lib/storage";
+import ModelCompare from "./ModelCompare";
 
 export default function SettingsDialog({ open, onClose, settings, onSave }: { open: boolean; onClose: () => void; settings: Settings; onSave: (s: Settings) => void }) {
   const [local, setLocal] = useState<Settings>(settings);
-  const [tab, setTab] = useState<"settings" | "api" | "docs">("settings");
+  const [tab, setTab] = useState<"settings" | "api" | "docs" | "compare">("settings");
   const [apiKey, setApiKey] = useState<string>("");
   const [copied, setCopied] = useState(false);
   useEffect(() => { setLocal(settings); }, [settings, open]);
