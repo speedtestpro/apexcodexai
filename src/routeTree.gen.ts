@@ -13,8 +13,10 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as CThreadIdRouteImport } from './routes/c.$threadId'
 import { Route as ApiUpgradeRouteImport } from './routes/api/upgrade'
 import { Route as ApiChatRouteImport } from './routes/api/chat'
+import { Route as ApiApikeyRouteImport } from './routes/api/apikey'
 import { Route as ApiUpgradeStatusRouteImport } from './routes/api/upgrade.status'
 import { Route as ApiPublicTelegramWebhookRouteImport } from './routes/api/public/telegram/webhook'
+import { Route as ApiPublicV1ChatCompletionsRouteImport } from './routes/api/public/v1/chat/completions'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -36,6 +38,11 @@ const ApiChatRoute = ApiChatRouteImport.update({
   path: '/api/chat',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiApikeyRoute = ApiApikeyRouteImport.update({
+  id: '/api/apikey',
+  path: '/api/apikey',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiUpgradeStatusRoute = ApiUpgradeStatusRouteImport.update({
   id: '/status',
   path: '/status',
@@ -47,65 +54,85 @@ const ApiPublicTelegramWebhookRoute =
     path: '/api/public/telegram/webhook',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicV1ChatCompletionsRoute =
+  ApiPublicV1ChatCompletionsRouteImport.update({
+    id: '/api/public/v1/chat/completions',
+    path: '/api/public/v1/chat/completions',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/api/apikey': typeof ApiApikeyRoute
   '/api/chat': typeof ApiChatRoute
   '/api/upgrade': typeof ApiUpgradeRouteWithChildren
   '/c/$threadId': typeof CThreadIdRoute
   '/api/upgrade/status': typeof ApiUpgradeStatusRoute
   '/api/public/telegram/webhook': typeof ApiPublicTelegramWebhookRoute
+  '/api/public/v1/chat/completions': typeof ApiPublicV1ChatCompletionsRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/api/apikey': typeof ApiApikeyRoute
   '/api/chat': typeof ApiChatRoute
   '/api/upgrade': typeof ApiUpgradeRouteWithChildren
   '/c/$threadId': typeof CThreadIdRoute
   '/api/upgrade/status': typeof ApiUpgradeStatusRoute
   '/api/public/telegram/webhook': typeof ApiPublicTelegramWebhookRoute
+  '/api/public/v1/chat/completions': typeof ApiPublicV1ChatCompletionsRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/api/apikey': typeof ApiApikeyRoute
   '/api/chat': typeof ApiChatRoute
   '/api/upgrade': typeof ApiUpgradeRouteWithChildren
   '/c/$threadId': typeof CThreadIdRoute
   '/api/upgrade/status': typeof ApiUpgradeStatusRoute
   '/api/public/telegram/webhook': typeof ApiPublicTelegramWebhookRoute
+  '/api/public/v1/chat/completions': typeof ApiPublicV1ChatCompletionsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/api/apikey'
     | '/api/chat'
     | '/api/upgrade'
     | '/c/$threadId'
     | '/api/upgrade/status'
     | '/api/public/telegram/webhook'
+    | '/api/public/v1/chat/completions'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/api/apikey'
     | '/api/chat'
     | '/api/upgrade'
     | '/c/$threadId'
     | '/api/upgrade/status'
     | '/api/public/telegram/webhook'
+    | '/api/public/v1/chat/completions'
   id:
     | '__root__'
     | '/'
+    | '/api/apikey'
     | '/api/chat'
     | '/api/upgrade'
     | '/c/$threadId'
     | '/api/upgrade/status'
     | '/api/public/telegram/webhook'
+    | '/api/public/v1/chat/completions'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  ApiApikeyRoute: typeof ApiApikeyRoute
   ApiChatRoute: typeof ApiChatRoute
   ApiUpgradeRoute: typeof ApiUpgradeRouteWithChildren
   CThreadIdRoute: typeof CThreadIdRoute
   ApiPublicTelegramWebhookRoute: typeof ApiPublicTelegramWebhookRoute
+  ApiPublicV1ChatCompletionsRoute: typeof ApiPublicV1ChatCompletionsRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -138,6 +165,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiChatRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/apikey': {
+      id: '/api/apikey'
+      path: '/api/apikey'
+      fullPath: '/api/apikey'
+      preLoaderRoute: typeof ApiApikeyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/upgrade/status': {
       id: '/api/upgrade/status'
       path: '/status'
@@ -150,6 +184,13 @@ declare module '@tanstack/react-router' {
       path: '/api/public/telegram/webhook'
       fullPath: '/api/public/telegram/webhook'
       preLoaderRoute: typeof ApiPublicTelegramWebhookRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/v1/chat/completions': {
+      id: '/api/public/v1/chat/completions'
+      path: '/api/public/v1/chat/completions'
+      fullPath: '/api/public/v1/chat/completions'
+      preLoaderRoute: typeof ApiPublicV1ChatCompletionsRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
@@ -169,10 +210,12 @@ const ApiUpgradeRouteWithChildren = ApiUpgradeRoute._addFileChildren(
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  ApiApikeyRoute: ApiApikeyRoute,
   ApiChatRoute: ApiChatRoute,
   ApiUpgradeRoute: ApiUpgradeRouteWithChildren,
   CThreadIdRoute: CThreadIdRoute,
   ApiPublicTelegramWebhookRoute: ApiPublicTelegramWebhookRoute,
+  ApiPublicV1ChatCompletionsRoute: ApiPublicV1ChatCompletionsRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
