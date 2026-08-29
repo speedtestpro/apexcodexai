@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { X, Check, Lock, Crown, Sparkles, Zap, Rocket, Users, Building2, Table2, Minus } from "lucide-react";
-import { PLANS, type PlanId, type Plan } from "@/lib/plans";
+import { PLANS, saveUpgradeId, type PlanId, type Plan } from "@/lib/plans";
 import { APEX_MODELS } from "@/lib/models";
 
 type Props = {
@@ -45,6 +45,7 @@ export default function PlansDialog({ open, onClose, currentPlan, userName, onSe
         if (stop) return;
         if (d.status === "confirmed") {
           setConfirmed(true);
+          saveUpgradeId(reqId);
           if (d.planId) onSelected?.(d.planId as PlanId);
         } else if (d.status === "rejected") {
           setRejected(true);

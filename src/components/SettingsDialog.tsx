@@ -1,39 +1,79 @@
 import { useEffect, useState } from "react";
 import { X, Copy, RefreshCw, Check, KeyRound, BookOpen, Settings2, Scale } from "lucide-react";
 import type { Settings } from "@/lib/storage";
+import { getPlan, loadPlan, loadUpgradeId } from "@/lib/plans";
 import ModelCompare from "./ModelCompare";
+
+type KeyInfo = { planId: string; planLabel: string; requestsUsed: number; tokensUsed: number };
 
 export default function SettingsDialog({ open, onClose, settings, onSave }: { open: boolean; onClose: () => void; settings: Settings; onSave: (s: Settings) => void }) {
   const [local, setLocal] = useState<Settings>(settings);
   const [tab, setTab] = useState<"settings" | "api" | "docs" | "compare">("settings");
   const [apiKey, setApiKey] = useState<string>("");
+  const [apiErr, setApiErr] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [info, setInfo] = useState<KeyInfo | null>(null);
   const [copied, setCopied] = useState(false);
+  const [baseUrl, setBaseUrl] = useState("https://apexcodexai.lovable.app/api/public/v1");
+  const plan = getPlan(loadPlan());
   useEffect(() => { setLocal(settings); }, [settings, open]);
   useEffect(() => {
     if (!open) return;
-    try {
-      const k = localStorage.getItem("apexcode:apikey");
-      if (k) setApiKey(k);
-    } catch {}
+    if (typeof window !== "undefined") setBaseUrl(`${window.location.origin}/api/public/v1`);
+    let k = "";
+    try { k = localStorage.getItem("apexcode:apikey") ?? ""; } catch {}
+    if (!k) { setApiKey(""); setInfo(null); return; }
+    setApiKey(k);
+    (async () => {
+      try {
+        const r = await fetch(`/api/apikey?key=${encodeURIComponent(k)}`);
+        if (!r.ok) { setApiKey(""); setInfo(null); try { localStorage.removeItem("apexcode:apikey"); } catch {} return; }
+        const d = (await r.json()) as KeyInfo;
+        setInfo(d);
+      } catch {}
+    })();
   }, [open]);
 
-  function generateKey() {
-    const bytes = new Uint8Array(24);
-    crypto.getRandomValues(bytes);
-    const hex = Array.from(bytes).map((b) => b.toString(16).padStart(2, "0")).join("");
-    const key = `apex_sk_${hex}`;
-    try { localStorage.setItem("apexcode:apikey", key); } catch {}
-    setApiKey(key);
-    setCopied(false);
+  async function generateKey(replace: boolean) {
+    setApiErr(null);
+    setBusy(true);
+    try {
+      const planId = loadPlan();
+      const upgradeId = loadUpgradeId();
+      if (replace && apiKey) {
+        try { await fetch(`/api/apikey?key=${encodeURIComponent(apiKey)}`, { method: "DELETE" }); } catch {}
+      }
+      const r = await fetch("/api/apikey", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ planId, upgradeId }),
+      });
+      const d = (await r.json().catch(() => ({}))) as { key?: string; message?: string; error?: string };
+      if (!r.ok || !d.key) {
+        setApiErr(d.message ?? "Не удалось создать ключ. Оформите тариф в разделе «Тарифы».");
+        return;
+      }
+      try { localStorage.setItem("apexcode:apikey", d.key); } catch {}
+      setApiKey(d.key);
+      setInfo({ planId, planLabel: plan.label, requestsUsed: 0, tokensUsed: 0 });
+      setCopied(false);
+    } catch (e) {
+      setApiErr(e instanceof Error ? e.message : "Ошибка сети");
+    } finally {
+      setBusy(false);
+    }
   }
   async function copyKey() {
     if (!apiKey) return;
     try { await navigator.clipboard.writeText(apiKey); setCopied(true); setTimeout(() => setCopied(false), 1500); } catch {}
   }
-  function revokeKey() {
+  async function revokeKey() {
+    if (apiKey) { try { await fetch(`/api/apikey?key=${encodeURIComponent(apiKey)}`, { method: "DELETE" }); } catch {} }
     try { localStorage.removeItem("apexcode:apikey"); } catch {}
     setApiKey("");
+    setInfo(null);
   }
+
 
   if (!open) return null;
   return (
@@ -165,8 +205,13 @@ export default function SettingsDialog({ open, onClose, settings, onSave }: { op
           <div className="p-4 space-y-4">
             <div>
               <div className="text-sm font-medium">Ваш API-ключ</div>
-              <p className="text-xs text-muted-foreground mt-1">Используется для доступа к ApexCode API. Храните его в секрете — как пароль.</p>
+              <p className="text-xs text-muted-foreground mt-1">
+                Ключ привязан к вашему тарифу — через API доступны те же модели, что и в чате.
+              </p>
             </div>
+            {apiErr && (
+              <div className="rounded-xl border border-destructive/40 bg-destructive/10 text-destructive text-xs p-3">{apiErr}</div>
+            )}
             {apiKey ? (
               <div className="space-y-2">
                 <div className="flex items-center gap-2 bg-input border border-border rounded-xl px-3 py-2.5 font-mono text-xs break-all">
@@ -176,27 +221,32 @@ export default function SettingsDialog({ open, onClose, settings, onSave }: { op
                   <button onClick={copyKey} className="flex-1 flex items-center justify-center gap-1.5 rounded-xl bg-secondary hover:bg-accent py-2.5 text-sm">
                     {copied ? <><Check className="h-4 w-4" /> Скопировано</> : <><Copy className="h-4 w-4" /> Копировать</>}
                   </button>
-                  <button onClick={generateKey} className="flex items-center justify-center gap-1.5 rounded-xl bg-secondary hover:bg-accent py-2.5 px-3 text-sm" title="Пересоздать">
-                    <RefreshCw className="h-4 w-4" />
+                  <button onClick={() => generateKey(true)} disabled={busy} className="flex items-center justify-center gap-1.5 rounded-xl bg-secondary hover:bg-accent py-2.5 px-3 text-sm disabled:opacity-50" title="Пересоздать">
+                    <RefreshCw className={`h-4 w-4 ${busy ? "animate-spin" : ""}`} />
                   </button>
                   <button onClick={revokeKey} className="rounded-xl bg-destructive/15 text-destructive hover:bg-destructive/25 py-2.5 px-3 text-sm">
                     Отозвать
                   </button>
                 </div>
-                <p className="text-[11px] text-muted-foreground">Ключ хранится локально в вашем браузере. Пересоздание немедленно отзывает предыдущий.</p>
+                <p className="text-[11px] text-muted-foreground">Пересоздание немедленно отзывает предыдущий ключ.</p>
               </div>
             ) : (
-              <button onClick={generateKey} className="w-full flex items-center justify-center gap-2 rounded-xl bg-primary text-primary-foreground py-3 text-sm font-medium hover:opacity-90">
-                <KeyRound className="h-4 w-4" /> Получить API-ключ
+              <button onClick={() => generateKey(false)} disabled={busy} className="w-full flex items-center justify-center gap-2 rounded-xl bg-primary text-primary-foreground py-3 text-sm font-medium hover:opacity-90 disabled:opacity-60">
+                <KeyRound className="h-4 w-4" /> {busy ? "Создаём…" : "Получить API-ключ"}
               </button>
             )}
             <div className="rounded-xl border border-border p-3 bg-muted/40 text-xs text-muted-foreground space-y-1">
-              <div><span className="text-foreground font-medium">Тариф:</span> Free — 8 000 токенов на сессию, восстановление от 2 часов.</div>
-              <div><span className="text-foreground font-medium">Лимит чата:</span> 900 000 токенов.</div>
+              <div><span className="text-foreground font-medium">Тариф API:</span> {plan.label} — {plan.sessionCap.toLocaleString("ru-RU")} токенов на запрос.</div>
+              <div><span className="text-foreground font-medium">Модели:</span> <span className="font-mono">{plan.models.join(", ")}</span></div>
+              {info && <div><span className="text-foreground font-medium">Использовано:</span> {info.requestsUsed} запросов · {info.tokensUsed.toLocaleString("ru-RU")} токенов</div>}
               <div><span className="text-foreground font-medium">Провайдер:</span> Seulop · ApexCode.</div>
             </div>
+            <p className="text-[11px] text-muted-foreground">
+              Купили тариф в разделе «Тарифы» — нажмите «Пересоздать», и ключ сразу перейдёт на новый тариф.
+            </p>
           </div>
         )}
+
         {tab === "docs" && (
           <div className="p-4 space-y-4 text-sm">
             <div>
@@ -206,7 +256,7 @@ export default function SettingsDialog({ open, onClose, settings, onSave }: { op
 
             <section className="space-y-1.5">
               <div className="font-medium">Базовый URL</div>
-              <pre className="bg-muted/60 border border-border rounded-lg p-2.5 text-xs overflow-x-auto"><code>https://api.apexcode.seulop.ai/v1</code></pre>
+              <pre className="bg-muted/60 border border-border rounded-lg p-2.5 text-xs overflow-x-auto"><code>{baseUrl}</code></pre>
             </section>
 
             <section className="space-y-1.5">
@@ -222,13 +272,13 @@ export default function SettingsDialog({ open, onClose, settings, onSave }: { op
                 <li>apex-mini</li><li>apex-nano</li>
                 <li>apex-vision</li><li>apex-lite</li>
                 <li>apex-reasoner</li><li>apex-ultra</li>
-                <li>apex-sonic</li>
+                <li>apex-sonic</li><li>apex-quasar</li>
               </ul>
             </section>
 
             <section className="space-y-1.5">
               <div className="font-medium">POST /chat/completions</div>
-              <pre className="bg-muted/60 border border-border rounded-lg p-2.5 text-[11px] overflow-x-auto"><code>{`curl https://api.apexcode.seulop.ai/v1/chat/completions \\
+              <pre className="bg-muted/60 border border-border rounded-lg p-2.5 text-[11px] overflow-x-auto"><code>{`curl ${baseUrl}/chat/completions \\
   -H "Authorization: Bearer apex_sk_..." \\
   -H "Content-Type: application/json" \\
   -d '{
@@ -275,6 +325,7 @@ export default function SettingsDialog({ open, onClose, settings, onSave }: { op
               <div className="font-medium">Ошибки</div>
               <ul className="text-xs text-muted-foreground list-disc pl-4 space-y-0.5">
                 <li><code>401</code> — неверный или отозванный ключ</li>
+                <li><code>403</code> — модель не входит в ваш тариф</li>
                 <li><code>429</code> — сессионный лимит (8 000 токенов), ждите восстановления</li>
                 <li><code>413</code> — превышен лимит чата (900 000 токенов)</li>
                 <li><code>5xx</code> — временная ошибка, повторите позже</li>
