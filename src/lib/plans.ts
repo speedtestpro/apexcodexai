@@ -136,3 +136,15 @@ export function savePlan(id: PlanId) {
   if (typeof window === "undefined") return;
   try { localStorage.setItem(K_PLAN, id); } catch {}
 }
+
+const K_UPGRADE = "apexcode:upgrade:v1";
+
+/** Id of the confirmed upgrade request that unlocked the current plan. */
+export function loadUpgradeId(): string | null {
+  if (typeof window === "undefined") return null;
+  try { return localStorage.getItem(K_UPGRADE); } catch { return null; }
+}
+export function saveUpgradeId(id: string) {
+  if (typeof window === "undefined") return;
+  try { localStorage.setItem(K_UPGRADE, id); } catch {}
+}

@@ -15,6 +15,7 @@ import { Route as ApiUpgradeRouteImport } from './routes/api/upgrade'
 import { Route as ApiChatRouteImport } from './routes/api/chat'
 import { Route as ApiApikeyRouteImport } from './routes/api/apikey'
 import { Route as ApiUpgradeStatusRouteImport } from './routes/api/upgrade.status'
+import { Route as ApiPublicV1ModelsRouteImport } from './routes/api/public/v1/models'
 import { Route as ApiPublicTelegramWebhookRouteImport } from './routes/api/public/telegram/webhook'
 import { Route as ApiPublicV1ChatCompletionsRouteImport } from './routes/api/public/v1/chat/completions'
 
@@ -48,6 +49,11 @@ const ApiUpgradeStatusRoute = ApiUpgradeStatusRouteImport.update({
   path: '/status',
   getParentRoute: () => ApiUpgradeRoute,
 } as any)
+const ApiPublicV1ModelsRoute = ApiPublicV1ModelsRouteImport.update({
+  id: '/api/public/v1/models',
+  path: '/api/public/v1/models',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicTelegramWebhookRoute =
   ApiPublicTelegramWebhookRouteImport.update({
     id: '/api/public/telegram/webhook',
@@ -69,6 +75,7 @@ export interface FileRoutesByFullPath {
   '/c/$threadId': typeof CThreadIdRoute
   '/api/upgrade/status': typeof ApiUpgradeStatusRoute
   '/api/public/telegram/webhook': typeof ApiPublicTelegramWebhookRoute
+  '/api/public/v1/models': typeof ApiPublicV1ModelsRoute
   '/api/public/v1/chat/completions': typeof ApiPublicV1ChatCompletionsRoute
 }
 export interface FileRoutesByTo {
@@ -79,6 +86,7 @@ export interface FileRoutesByTo {
   '/c/$threadId': typeof CThreadIdRoute
   '/api/upgrade/status': typeof ApiUpgradeStatusRoute
   '/api/public/telegram/webhook': typeof ApiPublicTelegramWebhookRoute
+  '/api/public/v1/models': typeof ApiPublicV1ModelsRoute
   '/api/public/v1/chat/completions': typeof ApiPublicV1ChatCompletionsRoute
 }
 export interface FileRoutesById {
@@ -90,6 +98,7 @@ export interface FileRoutesById {
   '/c/$threadId': typeof CThreadIdRoute
   '/api/upgrade/status': typeof ApiUpgradeStatusRoute
   '/api/public/telegram/webhook': typeof ApiPublicTelegramWebhookRoute
+  '/api/public/v1/models': typeof ApiPublicV1ModelsRoute
   '/api/public/v1/chat/completions': typeof ApiPublicV1ChatCompletionsRoute
 }
 export interface FileRouteTypes {
@@ -102,6 +111,7 @@ export interface FileRouteTypes {
     | '/c/$threadId'
     | '/api/upgrade/status'
     | '/api/public/telegram/webhook'
+    | '/api/public/v1/models'
     | '/api/public/v1/chat/completions'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -112,6 +122,7 @@ export interface FileRouteTypes {
     | '/c/$threadId'
     | '/api/upgrade/status'
     | '/api/public/telegram/webhook'
+    | '/api/public/v1/models'
     | '/api/public/v1/chat/completions'
   id:
     | '__root__'
@@ -122,6 +133,7 @@ export interface FileRouteTypes {
     | '/c/$threadId'
     | '/api/upgrade/status'
     | '/api/public/telegram/webhook'
+    | '/api/public/v1/models'
     | '/api/public/v1/chat/completions'
   fileRoutesById: FileRoutesById
 }
@@ -132,6 +144,7 @@ export interface RootRouteChildren {
   ApiUpgradeRoute: typeof ApiUpgradeRouteWithChildren
   CThreadIdRoute: typeof CThreadIdRoute
   ApiPublicTelegramWebhookRoute: typeof ApiPublicTelegramWebhookRoute
+  ApiPublicV1ModelsRoute: typeof ApiPublicV1ModelsRoute
   ApiPublicV1ChatCompletionsRoute: typeof ApiPublicV1ChatCompletionsRoute
 }
 
@@ -179,6 +192,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiUpgradeStatusRouteImport
       parentRoute: typeof ApiUpgradeRoute
     }
+    '/api/public/v1/models': {
+      id: '/api/public/v1/models'
+      path: '/api/public/v1/models'
+      fullPath: '/api/public/v1/models'
+      preLoaderRoute: typeof ApiPublicV1ModelsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/telegram/webhook': {
       id: '/api/public/telegram/webhook'
       path: '/api/public/telegram/webhook'
@@ -215,6 +235,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiUpgradeRoute: ApiUpgradeRouteWithChildren,
   CThreadIdRoute: CThreadIdRoute,
   ApiPublicTelegramWebhookRoute: ApiPublicTelegramWebhookRoute,
+  ApiPublicV1ModelsRoute: ApiPublicV1ModelsRoute,
   ApiPublicV1ChatCompletionsRoute: ApiPublicV1ChatCompletionsRoute,
 }
 export const routeTree = rootRouteImport
