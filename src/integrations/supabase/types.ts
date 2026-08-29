@@ -95,6 +95,54 @@ export type Database = {
         }
         Relationships: []
       }
+      usage_events: {
+        Row: {
+          api_key_id: string | null
+          created_at: string
+          deep_think: boolean
+          duration_ms: number
+          error_message: string | null
+          gateway_model: string
+          id: string
+          model_id: string
+          source: string
+          status: string
+          status_code: number | null
+          tokens: number
+          web_search: boolean
+        }
+        Insert: {
+          api_key_id?: string | null
+          created_at?: string
+          deep_think?: boolean
+          duration_ms?: number
+          error_message?: string | null
+          gateway_model?: string
+          id?: string
+          model_id: string
+          source?: string
+          status?: string
+          status_code?: number | null
+          tokens?: number
+          web_search?: boolean
+        }
+        Update: {
+          api_key_id?: string | null
+          created_at?: string
+          deep_think?: boolean
+          duration_ms?: number
+          error_message?: string | null
+          gateway_model?: string
+          id?: string
+          model_id?: string
+          source?: string
+          status?: string
+          status_code?: number | null
+          tokens?: number
+          web_search?: boolean
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
