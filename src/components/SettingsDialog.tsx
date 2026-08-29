@@ -1,39 +1,79 @@
 import { useEffect, useState } from "react";
 import { X, Copy, RefreshCw, Check, KeyRound, BookOpen, Settings2, Scale } from "lucide-react";
 import type { Settings } from "@/lib/storage";
+import { getPlan, loadPlan, loadUpgradeId } from "@/lib/plans";
 import ModelCompare from "./ModelCompare";
+
+type KeyInfo = { planId: string; planLabel: string; requestsUsed: number; tokensUsed: number };
 
 export default function SettingsDialog({ open, onClose, settings, onSave }: { open: boolean; onClose: () => void; settings: Settings; onSave: (s: Settings) => void }) {
   const [local, setLocal] = useState<Settings>(settings);
   const [tab, setTab] = useState<"settings" | "api" | "docs" | "compare">("settings");
   const [apiKey, setApiKey] = useState<string>("");
+  const [apiErr, setApiErr] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [info, setInfo] = useState<KeyInfo | null>(null);
   const [copied, setCopied] = useState(false);
+  const [baseUrl, setBaseUrl] = useState("https://apexcodexai.lovable.app/api/public/v1");
+  const plan = getPlan(loadPlan());
   useEffect(() => { setLocal(settings); }, [settings, open]);
   useEffect(() => {
     if (!open) return;
-    try {
-      const k = localStorage.getItem("apexcode:apikey");
-      if (k) setApiKey(k);
-    } catch {}
+    if (typeof window !== "undefined") setBaseUrl(`${window.location.origin}/api/public/v1`);
+    let k = "";
+    try { k = localStorage.getItem("apexcode:apikey") ?? ""; } catch {}
+    if (!k) { setApiKey(""); setInfo(null); return; }
+    setApiKey(k);
+    (async () => {
+      try {
+        const r = await fetch(`/api/apikey?key=${encodeURIComponent(k)}`);
+        if (!r.ok) { setApiKey(""); setInfo(null); try { localStorage.removeItem("apexcode:apikey"); } catch {} return; }
+        const d = (await r.json()) as KeyInfo;
+        setInfo(d);
+      } catch {}
+    })();
   }, [open]);
 
-  function generateKey() {
-    const bytes = new Uint8Array(24);
-    crypto.getRandomValues(bytes);
-    const hex = Array.from(bytes).map((b) => b.toString(16).padStart(2, "0")).join("");
-    const key = `apex_sk_${hex}`;
-    try { localStorage.setItem("apexcode:apikey", key); } catch {}
-    setApiKey(key);
-    setCopied(false);
+  async function generateKey(replace: boolean) {
+    setApiErr(null);
+    setBusy(true);
+    try {
+      const planId = loadPlan();
+      const upgradeId = loadUpgradeId();
+      if (replace && apiKey) {
+        try { await fetch(`/api/apikey?key=${encodeURIComponent(apiKey)}`, { method: "DELETE" }); } catch {}
+      }
+      const r = await fetch("/api/apikey", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ planId, upgradeId }),
+      });
+      const d = (await r.json().catch(() => ({}))) as { key?: string; message?: string; error?: string };
+      if (!r.ok || !d.key) {
+        setApiErr(d.message ?? "Не удалось создать ключ. Оформите тариф в разделе «Тарифы».");
+        return;
+      }
+      try { localStorage.setItem("apexcode:apikey", d.key); } catch {}
+      setApiKey(d.key);
+      setInfo({ planId, planLabel: plan.label, requestsUsed: 0, tokensUsed: 0 });
+      setCopied(false);
+    } catch (e) {
+      setApiErr(e instanceof Error ? e.message : "Ошибка сети");
+    } finally {
+      setBusy(false);
+    }
   }
   async function copyKey() {
     if (!apiKey) return;
     try { await navigator.clipboard.writeText(apiKey); setCopied(true); setTimeout(() => setCopied(false), 1500); } catch {}
   }
-  function revokeKey() {
+  async function revokeKey() {
+    if (apiKey) { try { await fetch(`/api/apikey?key=${encodeURIComponent(apiKey)}`, { method: "DELETE" }); } catch {} }
     try { localStorage.removeItem("apexcode:apikey"); } catch {}
     setApiKey("");
+    setInfo(null);
   }
+
 
   if (!open) return null;
   return (
