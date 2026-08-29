@@ -256,7 +256,7 @@ export default function SettingsDialog({ open, onClose, settings, onSave }: { op
 
             <section className="space-y-1.5">
               <div className="font-medium">Базовый URL</div>
-              <pre className="bg-muted/60 border border-border rounded-lg p-2.5 text-xs overflow-x-auto"><code>https://api.apexcode.seulop.ai/v1</code></pre>
+              <pre className="bg-muted/60 border border-border rounded-lg p-2.5 text-xs overflow-x-auto"><code>{baseUrl}</code></pre>
             </section>
 
             <section className="space-y-1.5">
@@ -272,13 +272,13 @@ export default function SettingsDialog({ open, onClose, settings, onSave }: { op
                 <li>apex-mini</li><li>apex-nano</li>
                 <li>apex-vision</li><li>apex-lite</li>
                 <li>apex-reasoner</li><li>apex-ultra</li>
-                <li>apex-sonic</li>
+                <li>apex-sonic</li><li>apex-quasar</li>
               </ul>
             </section>
 
             <section className="space-y-1.5">
               <div className="font-medium">POST /chat/completions</div>
-              <pre className="bg-muted/60 border border-border rounded-lg p-2.5 text-[11px] overflow-x-auto"><code>{`curl https://api.apexcode.seulop.ai/v1/chat/completions \\
+              <pre className="bg-muted/60 border border-border rounded-lg p-2.5 text-[11px] overflow-x-auto"><code>{`curl ${baseUrl}/chat/completions \\
   -H "Authorization: Bearer apex_sk_..." \\
   -H "Content-Type: application/json" \\
   -d '{
@@ -325,6 +325,7 @@ export default function SettingsDialog({ open, onClose, settings, onSave }: { op
               <div className="font-medium">Ошибки</div>
               <ul className="text-xs text-muted-foreground list-disc pl-4 space-y-0.5">
                 <li><code>401</code> — неверный или отозванный ключ</li>
+                <li><code>403</code> — модель не входит в ваш тариф</li>
                 <li><code>429</code> — сессионный лимит (8 000 токенов), ждите восстановления</li>
                 <li><code>413</code> — превышен лимит чата (900 000 токенов)</li>
                 <li><code>5xx</code> — временная ошибка, повторите позже</li>
