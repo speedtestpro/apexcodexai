@@ -161,7 +161,6 @@ export const Route = createFileRoute("/api/public/v1/chat/completions")({
                 await touchApiKey(apiKey, approxTokens + Math.ceil(out.length / 4));
                 await logUsage({
                   source: "api",
-            apiKeyId: rec.id,
                   apiKeyId: rec.id,
                   modelId: model.id,
                   gatewayModel: model.gateway,
