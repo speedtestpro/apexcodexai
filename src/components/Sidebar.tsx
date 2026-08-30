@@ -1,4 +1,5 @@
-import { X, Plus, Trash2, Settings as SettingsIcon, Sparkles, Crown } from "lucide-react";
+import { X, Plus, Trash2, Settings as SettingsIcon, Sparkles, Crown, BarChart3 } from "lucide-react";
+import { Link } from "@tanstack/react-router";
 import type { Thread } from "@/lib/storage";
 import { getPlan, type PlanId } from "@/lib/plans";
 
@@ -87,6 +88,14 @@ export default function Sidebar({ open, onClose, threads, activeId, onSelect, on
               {plan.label}
             </span>
           </button>
+          <Link
+            to="/stats"
+            onClick={onClose}
+            className="w-full flex items-center gap-2 px-3 py-2.5 rounded-xl bg-sidebar-accent hover:bg-accent transition text-sm"
+          >
+            <BarChart3 className="h-4 w-4" />
+            Статистика
+          </Link>
           <button
             onClick={onOpenSettings}
             className="w-full flex items-center gap-2 px-3 py-2.5 rounded-xl bg-sidebar-accent hover:bg-accent transition text-sm"
