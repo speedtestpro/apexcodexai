@@ -14,6 +14,7 @@ export type UsageEventInput = {
   durationMs?: number;
   webSearch?: boolean;
   deepThink?: boolean;
+  apiKeyId?: string | null;
 };
 
 export async function logUsage(e: UsageEventInput): Promise<void> {
@@ -29,6 +30,7 @@ export async function logUsage(e: UsageEventInput): Promise<void> {
       duration_ms: Math.max(0, Math.round(e.durationMs ?? 0)),
       web_search: !!e.webSearch,
       deep_think: !!e.deepThink,
+      api_key_id: e.apiKeyId ?? null,
     });
   } catch (err) {
     console.error("[usage] log failed", err);
@@ -66,12 +68,14 @@ export type UsageStats = {
   recent: UsageRow[];
 };
 
-export async function getUsageStats(days = 14): Promise<UsageStats> {
+export async function getUsageStats(days = 14, apiKeyId?: string | null): Promise<UsageStats> {
   const since = new Date(Date.now() - days * 86_400_000).toISOString();
-  const { data, error } = await (supabaseAdmin as any)
+  let q = (supabaseAdmin as any)
     .from(TABLE)
     .select("*")
-    .gte("created_at", since)
+    .gte("created_at", since);
+  if (apiKeyId) q = q.eq("api_key_id", apiKeyId);
+  const { data, error } = await q
     .order("created_at", { ascending: false })
     .limit(5000);
   if (error) throw new Error(error.message);
