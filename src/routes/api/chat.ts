@@ -184,7 +184,7 @@ export const Route = createFileRoute("/api/chat")({
             system,
             messages: toModelMessages(messages),
           });
-          void result.usage
+          void Promise.resolve(result.usage)
             .then((u) =>
               logUsage({
                 source: "web",
