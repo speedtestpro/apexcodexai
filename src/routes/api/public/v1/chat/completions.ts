@@ -43,6 +43,8 @@ export const Route = createFileRoute("/api/public/v1/chat/completions")({
       OPTIONS: async () => new Response(null, { status: 204, headers: CORS }),
       POST: async ({ request }) => {
         const { extractBearer, getApiKey, touchApiKey } = await import("@/lib/apikeys.server");
+        const { logUsage } = await import("@/lib/usage.server");
+        const startedAt = Date.now();
         const gatewayKey = process.env["LOVABLE_API_KEY"];
         if (!gatewayKey) return err(500, "server_error", "Gateway is not configured");
 
@@ -157,6 +159,14 @@ export const Route = createFileRoute("/api/public/v1/chat/completions")({
                 controller.enqueue(encoder.encode("data: [DONE]\n\n"));
                 controller.close();
                 await touchApiKey(apiKey, approxTokens + Math.ceil(out.length / 4));
+                await logUsage({
+                  source: "api",
+                  modelId: model.id,
+                  gatewayModel: model.gateway,
+                  status: "ok",
+                  tokens: approxTokens + Math.ceil(out.length / 4),
+                  durationMs: Date.now() - startedAt,
+                });
               },
             });
             return new Response(stream, {
@@ -172,6 +182,14 @@ export const Route = createFileRoute("/api/public/v1/chat/completions")({
           const text = await result.text;
           const completionTokens = Math.ceil(text.length / 4);
           await touchApiKey(apiKey, approxTokens + completionTokens);
+          await logUsage({
+            source: "api",
+            modelId: model.id,
+            gatewayModel: model.gateway,
+            status: "ok",
+            tokens: approxTokens + completionTokens,
+            durationMs: Date.now() - startedAt,
+          });
           return Response.json(
             {
               id,
@@ -188,7 +206,17 @@ export const Route = createFileRoute("/api/public/v1/chat/completions")({
             { headers: CORS },
           );
         } catch (e) {
-          return err(500, "server_error", e instanceof Error ? e.message : "AI error");
+          const msg = e instanceof Error ? e.message : "AI error";
+          await logUsage({
+            source: "api",
+            modelId: model.id,
+            gatewayModel: model.gateway,
+            status: "error",
+            statusCode: 500,
+            errorMessage: msg,
+            durationMs: Date.now() - startedAt,
+          });
+          return err(500, "server_error", msg);
         }
       },
     },
