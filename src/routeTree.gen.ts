@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as CThreadIdRouteImport } from './routes/c.$threadId'
 import { Route as ApiUpgradeRouteImport } from './routes/api/upgrade'
+import { Route as ApiStatsRouteImport } from './routes/api/stats'
 import { Route as ApiChatRouteImport } from './routes/api/chat'
 import { Route as ApiApikeyRouteImport } from './routes/api/apikey'
 import { Route as ApiUpgradeStatusRouteImport } from './routes/api/upgrade.status'
@@ -32,6 +33,11 @@ const CThreadIdRoute = CThreadIdRouteImport.update({
 const ApiUpgradeRoute = ApiUpgradeRouteImport.update({
   id: '/api/upgrade',
   path: '/api/upgrade',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiStatsRoute = ApiStatsRouteImport.update({
+  id: '/api/stats',
+  path: '/api/stats',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiChatRoute = ApiChatRouteImport.update({
@@ -71,6 +77,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/api/apikey': typeof ApiApikeyRoute
   '/api/chat': typeof ApiChatRoute
+  '/api/stats': typeof ApiStatsRoute
   '/api/upgrade': typeof ApiUpgradeRouteWithChildren
   '/c/$threadId': typeof CThreadIdRoute
   '/api/upgrade/status': typeof ApiUpgradeStatusRoute
@@ -82,6 +89,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/api/apikey': typeof ApiApikeyRoute
   '/api/chat': typeof ApiChatRoute
+  '/api/stats': typeof ApiStatsRoute
   '/api/upgrade': typeof ApiUpgradeRouteWithChildren
   '/c/$threadId': typeof CThreadIdRoute
   '/api/upgrade/status': typeof ApiUpgradeStatusRoute
@@ -94,6 +102,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/api/apikey': typeof ApiApikeyRoute
   '/api/chat': typeof ApiChatRoute
+  '/api/stats': typeof ApiStatsRoute
   '/api/upgrade': typeof ApiUpgradeRouteWithChildren
   '/c/$threadId': typeof CThreadIdRoute
   '/api/upgrade/status': typeof ApiUpgradeStatusRoute
@@ -107,6 +116,7 @@ export interface FileRouteTypes {
     | '/'
     | '/api/apikey'
     | '/api/chat'
+    | '/api/stats'
     | '/api/upgrade'
     | '/c/$threadId'
     | '/api/upgrade/status'
@@ -118,6 +128,7 @@ export interface FileRouteTypes {
     | '/'
     | '/api/apikey'
     | '/api/chat'
+    | '/api/stats'
     | '/api/upgrade'
     | '/c/$threadId'
     | '/api/upgrade/status'
@@ -129,6 +140,7 @@ export interface FileRouteTypes {
     | '/'
     | '/api/apikey'
     | '/api/chat'
+    | '/api/stats'
     | '/api/upgrade'
     | '/c/$threadId'
     | '/api/upgrade/status'
@@ -141,6 +153,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   ApiApikeyRoute: typeof ApiApikeyRoute
   ApiChatRoute: typeof ApiChatRoute
+  ApiStatsRoute: typeof ApiStatsRoute
   ApiUpgradeRoute: typeof ApiUpgradeRouteWithChildren
   CThreadIdRoute: typeof CThreadIdRoute
   ApiPublicTelegramWebhookRoute: typeof ApiPublicTelegramWebhookRoute
@@ -169,6 +182,13 @@ declare module '@tanstack/react-router' {
       path: '/api/upgrade'
       fullPath: '/api/upgrade'
       preLoaderRoute: typeof ApiUpgradeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/stats': {
+      id: '/api/stats'
+      path: '/api/stats'
+      fullPath: '/api/stats'
+      preLoaderRoute: typeof ApiStatsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/chat': {
@@ -232,6 +252,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ApiApikeyRoute: ApiApikeyRoute,
   ApiChatRoute: ApiChatRoute,
+  ApiStatsRoute: ApiStatsRoute,
   ApiUpgradeRoute: ApiUpgradeRouteWithChildren,
   CThreadIdRoute: CThreadIdRoute,
   ApiPublicTelegramWebhookRoute: ApiPublicTelegramWebhookRoute,
