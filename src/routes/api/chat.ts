@@ -57,11 +57,21 @@ export const Route = createFileRoute("/api/chat")({
         } catch {
           return new Response("Invalid JSON", { status: 400 });
         }
+        const { logUsage } = await import("@/lib/usage.server");
+        const startedAt = Date.now();
         const messages = body.messages;
         if (!Array.isArray(messages)) return new Response("messages required", { status: 400 });
         const requestedId = body.modelId ?? "apex-flash";
         const known = APEX_MODELS.find((m) => m.id === requestedId);
         if (!known) {
+          await logUsage({
+            source: "web",
+            modelId: requestedId,
+            status: "error",
+            statusCode: 400,
+            errorMessage: `Модель "${requestedId}" недоступна`,
+            durationMs: Date.now() - startedAt,
+          });
           return new Response(
             `Модель "${requestedId}" недоступна. Выберите другую модель.`,
             { status: 400 },
@@ -117,6 +127,15 @@ export const Route = createFileRoute("/api/chat")({
             if (!imgRes.ok) {
               const t = await imgRes.text().catch(() => "");
               console.error("[apex vision] image gen failed", imgRes.status, t);
+              await logUsage({
+                source: "web",
+                modelId: model.id,
+                gatewayModel: model.gateway,
+                status: "error",
+                statusCode: imgRes.status,
+                errorMessage: t.slice(0, 300),
+                durationMs: Date.now() - startedAt,
+              });
               return new Response(
                 `Не удалось сгенерировать изображение (${imgRes.status}). ${t.slice(0, 300)}`,
                 { status: imgRes.status },
@@ -132,12 +151,29 @@ export const Route = createFileRoute("/api/chat")({
             const out = src
               ? `Готово ✨\n\n![image](${src})`
               : "Не удалось сгенерировать изображение.";
+            await logUsage({
+              source: "web",
+              modelId: model.id,
+              gatewayModel: model.gateway,
+              status: src ? "ok" : "error",
+              errorMessage: src ? undefined : "empty image response",
+              durationMs: Date.now() - startedAt,
+            });
             return new Response(out, {
               headers: { "content-type": "text/plain; charset=utf-8" },
             });
           } catch (err) {
             const msg = err instanceof Error ? err.message : "Image error";
             console.error("[apex vision] exception", msg);
+            await logUsage({
+              source: "web",
+              modelId: model.id,
+              gatewayModel: model.gateway,
+              status: "error",
+              statusCode: 500,
+              errorMessage: msg,
+              durationMs: Date.now() - startedAt,
+            });
             return new Response(msg, { status: 500 });
           }
         }
@@ -148,11 +184,47 @@ export const Route = createFileRoute("/api/chat")({
             system,
             messages: toModelMessages(messages),
           });
+          void result.usage
+            .then((u) =>
+              logUsage({
+                source: "web",
+                modelId: model.id,
+                gatewayModel: model.gateway,
+                status: "ok",
+                tokens: Number(u?.totalTokens ?? 0),
+                durationMs: Date.now() - startedAt,
+                webSearch: !!body.webSearch,
+                deepThink: !!body.deepThink,
+              }),
+            )
+            .catch((e: unknown) =>
+              logUsage({
+                source: "web",
+                modelId: model.id,
+                gatewayModel: model.gateway,
+                status: "error",
+                errorMessage: e instanceof Error ? e.message : "stream error",
+                durationMs: Date.now() - startedAt,
+                webSearch: !!body.webSearch,
+                deepThink: !!body.deepThink,
+              }),
+            );
           return result.toTextStreamResponse({
             headers: sourcesHeader ? { "x-apex-sources": sourcesHeader } : undefined,
           });
         } catch (err) {
           const msg = err instanceof Error ? err.message : "AI error";
+          await logUsage({
+            source: "web",
+            modelId: model.id,
+            gatewayModel: model.gateway,
+            status: "error",
+            statusCode: 500,
+            errorMessage: msg,
+            durationMs: Date.now() - startedAt,
+            webSearch: !!body.webSearch,
+            deepThink: !!body.deepThink,
+          });
           return new Response(msg, { status: 500 });
         }
       },
