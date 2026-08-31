@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Activity,
   AlertTriangle,
@@ -10,10 +10,24 @@ import {
   Coins,
   Globe,
   Brain,
+  KeyRound,
+  Sparkles,
 } from "lucide-react";
+
+type KeyInfo = {
+  planId: string;
+  planLabel: string;
+  label: string;
+  requestsUsed: number;
+  tokensUsed: number;
+  createdAt: string;
+  sessionCap: number;
+};
 
 type Stats = {
   days: number;
+  scope: "key" | "all";
+  keyInfo: KeyInfo | null;
   totals: {
     requests: number;
     ok: number;
@@ -89,10 +103,26 @@ function Card({
 
 function StatsPage() {
   const [days, setDays] = useState(14);
+  const [apiKey, setApiKey] = useState("");
+  const [scope, setScope] = useState<"key" | "all">("all");
+
+  useEffect(() => {
+    try {
+      const k = localStorage.getItem("apexcode:apikey") ?? "";
+      if (k) {
+        setApiKey(k);
+        setScope("key");
+      }
+    } catch {
+      /* ignore */
+    }
+  }, []);
+
+  const keyParam = scope === "key" && apiKey ? `&key=${encodeURIComponent(apiKey)}` : "";
   const { data, isLoading, error } = useQuery<Stats>({
-    queryKey: ["stats", days],
+    queryKey: ["stats", days, keyParam],
     queryFn: async () => {
-      const r = await fetch(`/api/stats?days=${days}`);
+      const r = await fetch(`/api/stats?days=${days}${keyParam}`);
       if (!r.ok) throw new Error(await r.text());
       return (await r.json()) as Stats;
     },
@@ -128,6 +158,67 @@ function StatsPage() {
         {error && (
           <div className="text-destructive text-sm">
             Не удалось загрузить статистику: {(error as Error).message}
+          </div>
+        )}
+
+        {apiKey && (
+          <div className="flex gap-2">
+            <button
+              onClick={() => setScope("key")}
+              className={`flex-1 rounded-xl px-3 py-2 text-xs font-medium border transition ${scope === "key" ? "apex-holo text-foreground" : "apex-glass border-border/50 text-muted-foreground"}`}
+            >
+              Мой API-ключ
+            </button>
+            <button
+              onClick={() => setScope("all")}
+              className={`flex-1 rounded-xl px-3 py-2 text-xs font-medium border transition ${scope === "all" ? "apex-holo text-foreground" : "apex-glass border-border/50 text-muted-foreground"}`}
+            >
+              Всё использование
+            </button>
+          </div>
+        )}
+
+        {data?.keyInfo && (
+          <section className="apex-holo p-5">
+            <div className="relative z-10 flex items-start gap-4">
+              <div className="relative h-14 w-14 shrink-0">
+                <div className="apex-holo-ring absolute inset-0 rounded-full opacity-80 blur-[1px]" />
+                <div className="absolute inset-[3px] rounded-full bg-background/80 flex items-center justify-center">
+                  <KeyRound className="h-5 w-5 text-primary" />
+                </div>
+              </div>
+              <div className="min-w-0">
+                <div className="flex items-center gap-2 text-[10px] uppercase tracking-[0.25em] text-muted-foreground">
+                  <Sparkles className="h-3 w-3" /> API-ключ
+                </div>
+                <div className="font-serif text-xl apex-holo-text leading-tight">
+                  {data.keyInfo.planLabel}
+                </div>
+                <div className="mt-1 font-mono text-[11px] text-muted-foreground break-all">
+                  {apiKey.slice(0, 12)}••••{apiKey.slice(-4)}
+                </div>
+                <div className="mt-3 grid grid-cols-3 gap-3 text-xs">
+                  <div>
+                    <div className="text-muted-foreground">Запросов</div>
+                    <div className="text-base font-semibold">{data.keyInfo.requestsUsed.toLocaleString("ru-RU")}</div>
+                  </div>
+                  <div>
+                    <div className="text-muted-foreground">Токенов</div>
+                    <div className="text-base font-semibold">{data.keyInfo.tokensUsed.toLocaleString("ru-RU")}</div>
+                  </div>
+                  <div>
+                    <div className="text-muted-foreground">Лимит/запрос</div>
+                    <div className="text-base font-semibold">{data.keyInfo.sessionCap.toLocaleString("ru-RU")}</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+        )}
+
+        {data && data.scope === "key" && data.totals.requests === 0 && (
+          <div className="text-sm text-muted-foreground">
+            По этому ключу пока нет запросов — отправьте первый запрос к /api/public/v1/chat/completions.
           </div>
         )}
 
