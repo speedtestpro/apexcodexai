@@ -7,6 +7,8 @@ export type ApexModel = {
   supportsFiles: boolean;
   supportsWebSearch?: boolean;
   badge?: string;
+  /** Версия линейки Apex для этой модели. */
+  version?: string;
 };
 
 export const APEX_MODELS: ApexModel[] = [
@@ -29,6 +31,7 @@ export const APEX_MODELS: ApexModel[] = [
     supportsFiles: true,
     supportsWebSearch: true,
     badge: "pro",
+    version: "2.1",
   },
   {
     id: "apex-ultra",
@@ -39,6 +42,7 @@ export const APEX_MODELS: ApexModel[] = [
     supportsFiles: true,
     supportsWebSearch: true,
     badge: "max",
+    version: "2.1",
   },
   {
     id: "apex-reasoner",
@@ -48,6 +52,7 @@ export const APEX_MODELS: ApexModel[] = [
     supportsVision: true,
     supportsFiles: true,
     supportsWebSearch: true,
+    version: "2.1",
   },
   {
     id: "apex-mini",
@@ -101,6 +106,7 @@ export const APEX_MODELS: ApexModel[] = [
     supportsFiles: true,
     supportsWebSearch: true,
     badge: "new",
+    version: "2.1",
   },
 ];
 
