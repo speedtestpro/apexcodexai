@@ -1,10 +1,68 @@
-import { useEffect, useRef, useState } from "react";
+import { Component, useEffect, useRef, useState, type ReactNode } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import type { ChatMessage, ChatSource } from "@/lib/storage";
-import { Download, FileText, Globe, ExternalLink, Brain, ChevronDown } from "lucide-react";
+import { Download, FileText, Globe, ExternalLink, Brain, ChevronDown, Copy, Check } from "lucide-react";
 import GeneratedImage from "./GeneratedImage";
 import { extractProjectFiles, downloadZip } from "@/lib/projectParser";
+
+/** Закрывает незавершённый ``` блок во время стриминга, чтобы разметка не «ломалась». */
+function balanceFences(text: string): string {
+  const fences = (text.match(/^```/gm) ?? []).length;
+  return fences % 2 === 1 ? `${text}\n\u0060\u0060\u0060` : text;
+}
+
+/** Если markdown-рендер упал — показываем обычный текст вместо пустого экрана. */
+class MarkdownBoundary extends Component<{ fallback: string; children: ReactNode }, { failed: boolean }> {
+  state = { failed: false };
+  static getDerivedStateFromError() {
+    return { failed: true };
+  }
+  componentDidUpdate(prev: { fallback: string }) {
+    if (this.state.failed && prev.fallback !== this.props.fallback) this.setState({ failed: false });
+  }
+  render() {
+    if (this.state.failed) {
+      return <pre className="whitespace-pre-wrap break-words text-sm">{this.props.fallback}</pre>;
+    }
+    return this.props.children;
+  }
+}
+
+function CodeBlock({ code, lang }: { code: string; lang?: string }) {
+  const [copied, setCopied] = useState(false);
+  const copy = async () => {
+    try {
+      await navigator.clipboard.writeText(code);
+    } catch {
+      const ta = document.createElement("textarea");
+      ta.value = code;
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand("copy");
+      ta.remove();
+    }
+    setCopied(true);
+    setTimeout(() => setCopied(false), 1600);
+  };
+  return (
+    <div className="apex-glass rounded-xl my-2 overflow-hidden not-prose">
+      <div className="flex items-center gap-2 px-3 py-1.5 border-b border-border/40">
+        <span className="text-[10px] uppercase tracking-widest text-muted-foreground">{lang || "text"}</span>
+        <button
+          onClick={copy}
+          className="ml-auto inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-[11px] text-muted-foreground hover:text-foreground hover:bg-accent transition"
+        >
+          {copied ? <Check className="h-3 w-3 text-primary" /> : <Copy className="h-3 w-3" />}
+          {copied ? "Скопировано" : "Копировать"}
+        </button>
+      </div>
+      <pre className="overflow-x-auto px-3 py-2.5 text-[13px] leading-relaxed">
+        <code className="font-mono whitespace-pre">{code}</code>
+      </pre>
+    </div>
+  );
+}
 
 function splitThink(content: string): { think: string | null; body: string; thinking: boolean } {
   const openIdx = content.indexOf("<think>");
@@ -192,14 +250,30 @@ function Bubble({ message, userName, streaming }: { message: ChatMessage; userNa
             {isUser ? (
               <span>{message.content}</span>
             ) : (
-              <ReactMarkdown
-                remarkPlugins={[remarkGfm]}
-                urlTransform={(url) => url}
-                components={{
-                  img: ({ src, alt }) => <GeneratedImage src={String(src ?? "")} alt={alt ?? "Изображение"} />,
-                  p: ({ children }) => <p>{children}</p>,
-                }}
-              >{body || (streaming ? "…" : "")}</ReactMarkdown>
+              <MarkdownBoundary fallback={body}>
+                <ReactMarkdown
+                  remarkPlugins={[remarkGfm]}
+                  urlTransform={(url) => url}
+                  components={{
+                    img: ({ src, alt }) => <GeneratedImage src={String(src ?? "")} alt={alt ?? "Изображение"} />,
+                    p: ({ children }) => <p>{children}</p>,
+                    pre: ({ children }) => <>{children}</>,
+                    code: ({ className, children, ...props }) => {
+                      const text = String(children ?? "").replace(/\n$/, "");
+                      const lang = /language-(\w+)/.exec(className ?? "")?.[1];
+                      const isBlock = Boolean(lang) || text.includes("\n");
+                      if (!isBlock) {
+                        return (
+                          <code className="rounded bg-secondary px-1.5 py-0.5 font-mono text-[0.85em]" {...props}>
+                            {children}
+                          </code>
+                        );
+                      }
+                      return <CodeBlock code={text} lang={lang} />;
+                    },
+                  }}
+                >{balanceFences(body) || (streaming ? "…" : "")}</ReactMarkdown>
+              </MarkdownBoundary>
             )}
           </div>
           {!isUser && !streaming && message.sources && message.sources.length > 0 && (
