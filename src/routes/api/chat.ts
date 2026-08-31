@@ -95,7 +95,7 @@ export const Route = createFileRoute("/api/chat")({
         const model = known;
 
         const gateway = createLovableAiGatewayProvider(key);
-        let system = buildSystem(body.systemPrompt ?? "", body.userName ?? "", model.label);
+        let system = buildSystem(body.systemPrompt ?? "", body.userName ?? "", model.label, model.version);
         if (body.deepThink) {
           system += `\n\nРЕЖИМ ГЛУБОКОГО РАЗДУМИЯ ВКЛЮЧЁН. Прежде чем дать финальный ответ, тщательно продумай задачу шаг за шагом внутри блока <think>…</think> (внутренние рассуждения, разбор вариантов, проверка). Затем после блока </think> дай финальный, чёткий и хорошо структурированный ответ пользователю. Не сокращай размышления, но и не повторяй их вне тегов <think>.`;
         }
