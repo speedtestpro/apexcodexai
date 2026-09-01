@@ -37,11 +37,39 @@ function toModelMessages(msgs: InMsg[]): ModelMessage[] {
   });
 }
 
+function gatewayStatus(e: unknown): number {
+  const any = e as { statusCode?: number; status?: number } | null;
+  const s = any?.statusCode ?? any?.status;
+  return typeof s === "number" && s >= 400 && s < 600 ? s : 500;
+}
+
+function codeFor(status: number) {
+  if (status === 429) return "rate_limit_exceeded";
+  if (status === 402) return "insufficient_credits";
+  if (status === 403) return "forbidden";
+  if (status === 400) return "invalid_request_error";
+  return "server_error";
+}
+
 export const Route = createFileRoute("/api/public/v1/chat/completions")({
   server: {
     handlers: {
       OPTIONS: async () => new Response(null, { status: 204, headers: CORS }),
-      POST: async ({ request }) => {
+      POST: async (ctx: { request: Request }) => {
+        try {
+          return await handlePost(ctx);
+        } catch (e) {
+          const status = gatewayStatus(e);
+          return err(status, codeFor(status), e instanceof Error ? e.message : "Unexpected error");
+        }
+      },
+    },
+  },
+});
+
+async function handlePost({ request }: { request: Request }) {
+      {
+
         const { extractBearer, getApiKey, touchApiKey } = await import("@/lib/apikeys.server");
         const { logUsage } = await import("@/lib/usage.server");
         const startedAt = Date.now();
