@@ -122,6 +122,10 @@ function Row({
           {m.badge && (
             <span className="text-[9px] uppercase tracking-widest text-primary/80 border border-primary/40 rounded-full px-1.5 py-0.5">{m.badge}</span>
           )}
+          {m.version && (
+            <span className="text-[9px] tracking-wide text-muted-foreground border border-border rounded-full px-1.5 py-0.5">v{m.version}</span>
+          )}
+
           {active && <Check className="h-4 w-4 text-primary ml-auto" />}
         </div>
         <div className="text-xs text-muted-foreground mt-0.5">{m.description}</div>
