@@ -237,19 +237,19 @@ async function handlePost({ request }: { request: Request }) {
           );
         } catch (e) {
           const msg = e instanceof Error ? e.message : "AI error";
+          const status = gatewayStatus(e);
           await logUsage({
             source: "api",
             apiKeyId: rec.id,
             modelId: model.id,
             gatewayModel: model.gateway,
             status: "error",
-            statusCode: 500,
+            statusCode: status,
             errorMessage: msg,
             durationMs: Date.now() - startedAt,
-          });
-          return err(500, "server_error", msg);
+          }).catch(() => {});
+          return err(status, codeFor(status), msg);
         }
-      },
-    },
-  },
-});
+      }
+}
+
