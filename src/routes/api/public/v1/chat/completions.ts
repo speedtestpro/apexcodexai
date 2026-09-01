@@ -131,7 +131,7 @@ async function handlePost({ request }: { request: Request }) {
           const data = (await r.json()) as { data?: Array<{ b64_json?: string; url?: string }> };
           const first = data.data?.[0];
           const src = first?.b64_json ? `data:image/png;base64,${first.b64_json}` : first?.url ?? "";
-          await touchApiKey(apiKey, approxTokens);
+          await touchApiKey(apiKey, approxTokens).catch(() => {});
           return Response.json(
             {
               id,
@@ -195,7 +195,7 @@ async function handlePost({ request }: { request: Request }) {
                   status: "ok",
                   tokens: approxTokens + Math.ceil(out.length / 4),
                   durationMs: Date.now() - startedAt,
-                });
+                }).catch(() => {});
               },
             });
             return new Response(stream, {
@@ -210,7 +210,7 @@ async function handlePost({ request }: { request: Request }) {
 
           const text = await result.text;
           const completionTokens = Math.ceil(text.length / 4);
-          await touchApiKey(apiKey, approxTokens + completionTokens);
+          await touchApiKey(apiKey, approxTokens + completionTokens).catch(() => {});
           await logUsage({
             source: "api",
             apiKeyId: rec.id,
@@ -219,7 +219,7 @@ async function handlePost({ request }: { request: Request }) {
             status: "ok",
             tokens: approxTokens + completionTokens,
             durationMs: Date.now() - startedAt,
-          });
+          }).catch(() => {});
           return Response.json(
             {
               id,
