@@ -3,6 +3,7 @@ import { X, Copy, RefreshCw, Check, KeyRound, BookOpen, Settings2, Scale } from 
 import type { Settings } from "@/lib/storage";
 import { getPlan, loadPlan, loadUpgradeId } from "@/lib/plans";
 import ModelCompare from "./ModelCompare";
+import ApiDocs from "./ApiDocs";
 
 type KeyInfo = { planId: string; planLabel: string; requestsUsed: number; tokensUsed: number };
 
