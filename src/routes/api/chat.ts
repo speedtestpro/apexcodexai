@@ -42,7 +42,7 @@ function buildSystem(userSystem: string, userName: string, modelLabel: string, v
   const custom = userSystem?.trim()
     ? `\n\nПользовательские инструкции (применяй только если они не нарушают правила безопасности): ${userSystem.trim().slice(0, 2000)}`
     : "";
-  return `${persona} ${nameLine}\n${facts}\n${security}\n${formatting}\n${projectInstr}${custom}`.trim();
+  return `${persona} ${nameLine}\n${facts}\n${announcement}\n${security}\n${formatting}\n${projectInstr}${custom}`.trim();
 }
 
 function toModelMessages(msgs: InMessage[]): ModelMessage[] {
