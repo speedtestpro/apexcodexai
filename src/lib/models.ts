@@ -21,6 +21,7 @@ export const APEX_MODELS: ApexModel[] = [
     supportsFiles: true,
     supportsWebSearch: true,
     badge: "default",
+    version: "2.3",
   },
   {
     id: "apex-pro",
@@ -31,7 +32,7 @@ export const APEX_MODELS: ApexModel[] = [
     supportsFiles: true,
     supportsWebSearch: true,
     badge: "pro",
-    version: "2.1",
+    version: "2.3",
   },
   {
     id: "apex-ultra",
@@ -42,7 +43,7 @@ export const APEX_MODELS: ApexModel[] = [
     supportsFiles: true,
     supportsWebSearch: true,
     badge: "max",
-    version: "2.1",
+    version: "2.3",
   },
   {
     id: "apex-reasoner",
@@ -52,7 +53,7 @@ export const APEX_MODELS: ApexModel[] = [
     supportsVision: true,
     supportsFiles: true,
     supportsWebSearch: true,
-    version: "2.1",
+    version: "2.3",
   },
   {
     id: "apex-mini",
@@ -62,6 +63,7 @@ export const APEX_MODELS: ApexModel[] = [
     supportsVision: true,
     supportsFiles: true,
     supportsWebSearch: true,
+    version: "2.3",
   },
   {
     id: "apex-nano",
@@ -70,6 +72,7 @@ export const APEX_MODELS: ApexModel[] = [
     gateway: "google/gemini-3.1-flash-lite",
     supportsVision: false,
     supportsFiles: false,
+    version: "2.3",
   },
   {
     id: "apex-vision",
@@ -79,6 +82,7 @@ export const APEX_MODELS: ApexModel[] = [
     supportsVision: true,
     supportsFiles: true,
     badge: "image",
+    version: "2.3",
   },
   {
     id: "apex-sonic",
@@ -88,6 +92,7 @@ export const APEX_MODELS: ApexModel[] = [
     supportsVision: true,
     supportsFiles: true,
     supportsWebSearch: true,
+    version: "2.3",
   },
   {
     id: "apex-lite",
@@ -96,6 +101,7 @@ export const APEX_MODELS: ApexModel[] = [
     gateway: "google/gemini-2.5-flash-lite",
     supportsVision: false,
     supportsFiles: true,
+    version: "2.3",
   },
   {
     id: "apex-quasar",
@@ -106,7 +112,7 @@ export const APEX_MODELS: ApexModel[] = [
     supportsFiles: true,
     supportsWebSearch: true,
     badge: "new",
-    version: "2.1",
+    version: "2.3",
   },
 ];
 
