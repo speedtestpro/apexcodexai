@@ -131,7 +131,17 @@ async function handlePost({ request }: { request: Request }) {
           const data = (await r.json()) as { data?: Array<{ b64_json?: string; url?: string }> };
           const first = data.data?.[0];
           const src = first?.b64_json ? `data:image/png;base64,${first.b64_json}` : first?.url ?? "";
-          await touchApiKey(apiKey, approxTokens).catch(() => {});
+          const imageTokens = imageTokenCost(prompt);
+          await touchApiKey(apiKey, imageTokens).catch(() => {});
+          await logUsage({
+            source: "api",
+            apiKeyId: rec.id,
+            modelId: model.id,
+            gatewayModel: model.gateway,
+            status: "ok",
+            tokens: imageTokens,
+            durationMs: Date.now() - startedAt,
+          }).catch(() => {});
           return Response.json(
             {
               id,
@@ -141,7 +151,7 @@ async function handlePost({ request }: { request: Request }) {
               choices: [
                 { index: 0, message: { role: "assistant", content: `![image](${src})` }, finish_reason: "stop" },
               ],
-              usage: { prompt_tokens: approxTokens, completion_tokens: 0, total_tokens: approxTokens },
+              usage: { prompt_tokens: approxTokens, completion_tokens: imageTokens, total_tokens: approxTokens + imageTokens },
             },
             { headers: CORS },
           );
