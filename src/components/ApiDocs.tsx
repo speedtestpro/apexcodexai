@@ -345,7 +345,7 @@ const client = new OpenAI({
 });
 
 const r = await client.chat.completions.create({
-  model: "apex-mini",
+  model: "apex-flash",
   messages: [{ role: "user", content: "Привет!" }],
 });
 console.log(r.choices[0].message.content);`}
@@ -387,7 +387,7 @@ console.log(r.choices[0].message.content);`}
         </div>
         <CodeSample
           lang="json"
-          code={`{"error": {"type": "model_not_in_plan", "message": "Модель \\"apex-ultra\\" недоступна на тарифе Free.", "code": "model_not_in_plan"}}`}
+          code={`{"error": {"type": "model_not_in_plan", "message": "Модель \\"apex-quasar\\" недоступна на тарифе Free.", "code": "model_not_in_plan"}}`}
         />
       </Section>
 

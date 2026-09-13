@@ -172,11 +172,13 @@ export const Route = createFileRoute("/api/chat")({
             const out = src
               ? `Готово ✨\n\n![image](${src})`
               : "Не удалось сгенерировать изображение.";
+            const { imageTokenCost } = await import("@/lib/models");
             await logUsage({
               source: "web",
               modelId: model.id,
               gatewayModel: model.gateway,
               status: src ? "ok" : "error",
+              tokens: src ? imageTokenCost(prompt) : undefined,
               errorMessage: src ? undefined : "empty image response",
               durationMs: Date.now() - startedAt,
             });
