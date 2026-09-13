@@ -18,10 +18,10 @@ export const PLANS: Plan[] = [
     price: "$0",
     priceUsd: 0,
     sessionCap: 8_000,
-    models: ["apex-nano", "apex-lite", "apex-mini"],
+    models: ["apex-flash"],
     features: [
       "8 000 токенов на сессию",
-      "3 базовые модели",
+      "Базовая модель Apex Flash",
       "Восстановление 2–4 часа",
       "Файлы и изображения (ограниченно)",
     ],
@@ -33,10 +33,10 @@ export const PLANS: Plan[] = [
     price: "$9",
     priceUsd: 9,
     sessionCap: 16_000,
-    models: ["apex-nano", "apex-lite", "apex-mini", "apex-flash", "apex-sonic", "apex-vision"],
+    models: ["apex-flash", "apex-vision"],
     features: [
       "16 000 токенов на сессию",
-      "6 моделей включая Flash и Vision",
+      "Flash и Vision (генерация фото)",
       "Приоритетная очередь",
       "Полная поддержка файлов",
     ],
@@ -48,13 +48,10 @@ export const PLANS: Plan[] = [
     price: "$19",
     priceUsd: 19,
     sessionCap: 32_000,
-    models: [
-      "apex-nano", "apex-lite", "apex-mini", "apex-flash", "apex-sonic",
-      "apex-vision", "apex-pro", "apex-reasoner",
-    ],
+    models: ["apex-flash", "apex-vision", "apex-pro"],
     features: [
       "32 000 токенов на сессию",
-      "8 моделей включая Pro и Reasoner",
+      "3 модели включая Apex Pro",
       "Ранний доступ к новым моделям",
       "Расширенные проекты в .zip",
     ],
@@ -66,13 +63,10 @@ export const PLANS: Plan[] = [
     price: "$39",
     priceUsd: 39,
     sessionCap: 64_000,
-    models: [
-      "apex-nano", "apex-lite", "apex-mini", "apex-flash", "apex-sonic",
-      "apex-vision", "apex-pro", "apex-reasoner", "apex-ultra", "apex-quasar",
-    ],
+    models: ["apex-flash", "apex-vision", "apex-pro", "apex-quasar"],
     features: [
       "64 000 токенов на сессию",
-      "Все 10 моделей — включая Ultra и Quasar",
+      "Все 4 модели — включая Quasar",
       "Максимальный приоритет",
       "Персональная поддержка",
     ],
@@ -84,10 +78,7 @@ export const PLANS: Plan[] = [
     price: "$79",
     priceUsd: 79,
     sessionCap: 96_000,
-    models: [
-      "apex-nano", "apex-lite", "apex-mini", "apex-flash", "apex-sonic",
-      "apex-vision", "apex-pro", "apex-reasoner", "apex-ultra", "apex-quasar",
-    ],
+    models: ["apex-flash", "apex-vision", "apex-pro", "apex-quasar"],
     features: [
       "96 000 токенов на сессию",
       "До 5 участников в рабочем пространстве",
@@ -102,10 +93,7 @@ export const PLANS: Plan[] = [
     price: "$199",
     priceUsd: 199,
     sessionCap: 200_000,
-    models: [
-      "apex-nano", "apex-lite", "apex-mini", "apex-flash", "apex-sonic",
-      "apex-vision", "apex-pro", "apex-reasoner", "apex-ultra", "apex-quasar",
-    ],
+    models: ["apex-flash", "apex-vision", "apex-pro", "apex-quasar"],
     features: [
       "200 000 токенов на сессию",
       "Безлимитные участники и SSO",
@@ -115,6 +103,7 @@ export const PLANS: Plan[] = [
     accent: "from-rose-500/40 to-rose-500/10",
   },
 ];
+
 
 export const DEFAULT_PLAN_ID: PlanId = "free";
 
