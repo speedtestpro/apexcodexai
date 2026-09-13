@@ -35,43 +35,14 @@ export const APEX_MODELS: ApexModel[] = [
     version: "2.3",
   },
   {
-    id: "apex-ultra",
-    label: "Apex Ultra",
-    description: "Максимум качества, медленнее.",
-    gateway: "google/gemini-3.1-pro-preview",
+    id: "apex-quasar",
+    label: "Apex Quasar",
+    description: "Флагман нового поколения для сложного кода и рассуждений.",
+    gateway: "google/gemini-3.7-flash",
     supportsVision: true,
     supportsFiles: true,
     supportsWebSearch: true,
-    badge: "max",
-    version: "2.3",
-  },
-  {
-    id: "apex-reasoner",
-    label: "Apex Reasoner",
-    description: "Глубокий анализ и код.",
-    gateway: "google/gemini-3.6-flash",
-    supportsVision: true,
-    supportsFiles: true,
-    supportsWebSearch: true,
-    version: "2.3",
-  },
-  {
-    id: "apex-mini",
-    label: "Apex Mini",
-    description: "Компактный и дешёвый.",
-    gateway: "google/gemini-3.5-flash",
-    supportsVision: true,
-    supportsFiles: true,
-    supportsWebSearch: true,
-    version: "2.3",
-  },
-  {
-    id: "apex-nano",
-    label: "Apex Nano",
-    description: "Молниеносный, короткие ответы.",
-    gateway: "google/gemini-3.1-flash-lite",
-    supportsVision: false,
-    supportsFiles: false,
+    badge: "new",
     version: "2.3",
   },
   {
@@ -84,40 +55,19 @@ export const APEX_MODELS: ApexModel[] = [
     badge: "image",
     version: "2.3",
   },
-  {
-    id: "apex-sonic",
-    label: "Apex Sonic",
-    description: "Быстрый Gemini 3.5.",
-    gateway: "google/gemini-3.5-flash",
-    supportsVision: true,
-    supportsFiles: true,
-    supportsWebSearch: true,
-    version: "2.3",
-  },
-  {
-    id: "apex-lite",
-    label: "Apex Lite",
-    description: "Самый экономичный.",
-    gateway: "google/gemini-2.5-flash-lite",
-    supportsVision: false,
-    supportsFiles: true,
-    version: "2.3",
-  },
-  {
-    id: "apex-quasar",
-    label: "Apex Quasar",
-    description: "Флагман нового поколения для сложного кода и рассуждений.",
-    gateway: "google/gemini-3.7-flash",
-    supportsVision: true,
-    supportsFiles: true,
-    supportsWebSearch: true,
-    badge: "new",
-    version: "2.3",
-  },
 ];
 
-export const DEFAULT_MODEL_ID = "apex-mini";
+export const DEFAULT_MODEL_ID = "apex-flash";
 
 export function getModel(id: string): ApexModel {
   return APEX_MODELS.find((m) => m.id === id) ?? APEX_MODELS[0];
+}
+
+/** Стоимость одной генерации изображения: от 800 до 2300 токенов. */
+export const IMAGE_TOKENS_MIN = 800;
+export const IMAGE_TOKENS_MAX = 2300;
+
+export function imageTokenCost(prompt: string): number {
+  const extra = Math.ceil((prompt?.length ?? 0) * 1.5);
+  return Math.min(IMAGE_TOKENS_MAX, Math.max(IMAGE_TOKENS_MIN, IMAGE_TOKENS_MIN + extra));
 }
