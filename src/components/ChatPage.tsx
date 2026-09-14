@@ -227,13 +227,13 @@ export default function ChatPage({ threadId }: { threadId: string }) {
       setStreamText("");
       abortRef.current = null;
     }
-  }, [thread, session, settings, updateThread, sessionCap, webSearchEnabled, deepThink, currentPlanObj]);
+  }, [thread, session, settings, updateThread, sessionCap, webSearchEnabled, deepThink, currentPlanObj, activeModelId]);
 
   const stop = useCallback(() => {
     abortRef.current?.abort();
   }, []);
 
-  const currentModel = thread ? getModel(thread.modelId) : getModel(DEFAULT_MODEL_ID);
+  const currentModel = getModel(activeModelId);
   const cooldownActive = !!(session.cooldownUntil && Date.now() < session.cooldownUntil);
 
   return (
