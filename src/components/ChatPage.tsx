@@ -121,7 +121,7 @@ export default function ChatPage({ threadId }: { threadId: string }) {
     }
     // Model change requires a new chat
     createNewChat(modelId);
-  }, [thread, updateThread, createNewChat, currentPlanObj]);
+  }, [thread, updateThread, createNewChat, currentPlanObj, manualPick]);
 
   const sendMessage = useCallback(async (text: string, attachments: ChatFileAttachment[]) => {
     if (!thread) return;
@@ -134,8 +134,8 @@ export default function ChatPage({ threadId }: { threadId: string }) {
       setError("Достигнут лимит 900 000 токенов на этот чат. Начните новый чат.");
       return;
     }
-    if (!currentPlanObj.models.includes(thread.modelId)) {
-      setError(`Модель "${getModel(thread.modelId).label}" недоступна на тарифе ${currentPlanObj.label}. Смените модель или тариф.`);
+    if (!currentPlanObj.models.includes(activeModelId)) {
+      setError(`Модель "${getModel(activeModelId).label}" недоступна на тарифе ${currentPlanObj.label}. Смените модель или тариф.`);
       setPlansOpen(true);
       return;
     }
