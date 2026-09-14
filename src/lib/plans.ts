@@ -1,4 +1,4 @@
-export type PlanId = "free" | "plus" | "pro" | "max" | "team" | "enterprise";
+export type PlanId = "free" | "pro" | "max";
 
 export type Plan = {
   id: PlanId;
@@ -7,6 +7,10 @@ export type Plan = {
   priceUsd: number;
   sessionCap: number;
   models: string[]; // apex model ids allowed
+  /** Можно ли вручную выбирать модель (иначе — авто-роутинг). */
+  manualModelPick: boolean;
+  /** Сколько первых запросов сессии уходят на Apex Pro при авто-роутинге. */
+  autoProRequests: number;
   features: string[];
   accent: string;
 };
@@ -18,29 +22,16 @@ export const PLANS: Plan[] = [
     price: "$0",
     priceUsd: 0,
     sessionCap: 8_000,
-    models: ["apex-flash"],
+    models: ["apex-flash", "apex-pro"],
+    manualModelPick: false,
+    autoProRequests: 3,
     features: [
       "8 000 токенов на сессию",
-      "Базовая модель Apex Flash",
-      "Восстановление 2–4 часа",
+      "Авто-выбор модели: первые 3 запроса на Apex Pro, дальше Apex Flash",
+      "Ручной выбор модели недоступен",
       "Файлы и изображения (ограниченно)",
     ],
     accent: "from-zinc-500/40 to-zinc-500/10",
-  },
-  {
-    id: "plus",
-    label: "Plus",
-    price: "$9",
-    priceUsd: 9,
-    sessionCap: 16_000,
-    models: ["apex-flash", "apex-vision"],
-    features: [
-      "16 000 токенов на сессию",
-      "Flash и Vision (генерация фото)",
-      "Приоритетная очередь",
-      "Полная поддержка файлов",
-    ],
-    accent: "from-sky-500/40 to-sky-500/10",
   },
   {
     id: "pro",
@@ -48,12 +39,14 @@ export const PLANS: Plan[] = [
     price: "$19",
     priceUsd: 19,
     sessionCap: 32_000,
-    models: ["apex-flash", "apex-vision", "apex-pro"],
+    models: ["apex-flash", "apex-pro", "apex-vision", "apex-quasar"],
+    manualModelPick: true,
+    autoProRequests: 0,
     features: [
       "32 000 токенов на сессию",
-      "3 модели включая Apex Pro",
-      "Ранний доступ к новым моделям",
-      "Расширенные проекты в .zip",
+      "Ручной выбор модели",
+      "Flash, Pro, Quasar и Vision (генерация фото)",
+      "Приоритетная очередь и проекты в .zip",
     ],
     accent: "from-amber-500/40 to-amber-500/10",
   },
@@ -63,44 +56,16 @@ export const PLANS: Plan[] = [
     price: "$39",
     priceUsd: 39,
     sessionCap: 64_000,
-    models: ["apex-flash", "apex-vision", "apex-pro", "apex-quasar"],
+    models: ["apex-flash", "apex-pro", "apex-vision", "apex-quasar", "apex-mars"],
+    manualModelPick: true,
+    autoProRequests: 0,
     features: [
       "64 000 токенов на сессию",
-      "Все 4 модели — включая Quasar",
-      "Максимальный приоритет",
-      "Персональная поддержка",
+      "Все модели, включая ApexMars 1.1",
+      "Максимальная защита от джейлбрейка",
+      "Максимальный приоритет и поддержка",
     ],
     accent: "from-fuchsia-500/40 to-fuchsia-500/10",
-  },
-  {
-    id: "team",
-    label: "Team",
-    price: "$79",
-    priceUsd: 79,
-    sessionCap: 96_000,
-    models: ["apex-flash", "apex-vision", "apex-pro", "apex-quasar"],
-    features: [
-      "96 000 токенов на сессию",
-      "До 5 участников в рабочем пространстве",
-      "Общая история и проекты команды",
-      "Гибкое распределение лимитов",
-    ],
-    accent: "from-emerald-500/40 to-emerald-500/10",
-  },
-  {
-    id: "enterprise",
-    label: "Enterprise",
-    price: "$199",
-    priceUsd: 199,
-    sessionCap: 200_000,
-    models: ["apex-flash", "apex-vision", "apex-pro", "apex-quasar"],
-    features: [
-      "200 000 токенов на сессию",
-      "Безлимитные участники и SSO",
-      "Приватный контур и SLA 99.9%",
-      "Выделенный менеджер и обучение",
-    ],
-    accent: "from-rose-500/40 to-rose-500/10",
   },
 ];
 
@@ -136,4 +101,9 @@ export function loadUpgradeId(): string | null {
 export function saveUpgradeId(id: string) {
   if (typeof window === "undefined") return;
   try { localStorage.setItem(K_UPGRADE, id); } catch {}
+}
+
+/** Модель для авто-роутинга (Free): первые N запросов — Pro, дальше Flash. */
+export function autoRouteModelId(plan: Plan, requestIndex: number): string {
+  return requestIndex < plan.autoProRequests ? "apex-pro" : "apex-flash";
 }
