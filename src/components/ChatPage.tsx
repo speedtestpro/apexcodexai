@@ -16,7 +16,7 @@ import ModelPicker from "./ModelPicker";
 import SettingsDialog from "./SettingsDialog";
 import WelcomeOrb from "./WelcomeOrb";
 import PlansDialog from "./PlansDialog";
-import { getPlan, loadPlan, savePlan, type PlanId } from "@/lib/plans";
+import { getPlan, loadPlan, savePlan, autoRouteModelId, type PlanId } from "@/lib/plans";
 import { Menu, MessageSquarePlus, Settings as SettingsIcon } from "lucide-react";
 
 function uid() { return `m_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`; }
@@ -107,9 +107,13 @@ export default function ChatPage({ threadId }: { threadId: string }) {
 
   const currentPlanObj = getPlan(plan);
   const sessionCap = currentPlanObj.sessionCap;
+  const manualPick = currentPlanObj.manualModelPick;
+  const autoModelId = autoRouteModelId(currentPlanObj, session.requests ?? 0);
+  const activeModelId = manualPick ? (thread?.modelId ?? DEFAULT_MODEL_ID) : autoModelId;
 
   const changeModel = useCallback((modelId: string) => {
     if (!thread) return;
+    if (!manualPick) { setPlansOpen(true); return; }
     if (!currentPlanObj.models.includes(modelId)) { setPlansOpen(true); return; }
     if (thread.messages.length === 0) {
       updateThread(thread.id, (t) => ({ ...t, modelId }));
@@ -117,7 +121,7 @@ export default function ChatPage({ threadId }: { threadId: string }) {
     }
     // Model change requires a new chat
     createNewChat(modelId);
-  }, [thread, updateThread, createNewChat, currentPlanObj]);
+  }, [thread, updateThread, createNewChat, currentPlanObj, manualPick]);
 
   const sendMessage = useCallback(async (text: string, attachments: ChatFileAttachment[]) => {
     if (!thread) return;
@@ -130,8 +134,8 @@ export default function ChatPage({ threadId }: { threadId: string }) {
       setError("Достигнут лимит 900 000 токенов на этот чат. Начните новый чат.");
       return;
     }
-    if (!currentPlanObj.models.includes(thread.modelId)) {
-      setError(`Модель "${getModel(thread.modelId).label}" недоступна на тарифе ${currentPlanObj.label}. Смените модель или тариф.`);
+    if (!currentPlanObj.models.includes(activeModelId)) {
+      setError(`Модель "${getModel(activeModelId).label}" недоступна на тарифе ${currentPlanObj.label}. Смените модель или тариф.`);
       setPlansOpen(true);
       return;
     }
@@ -159,10 +163,10 @@ export default function ChatPage({ threadId }: { threadId: string }) {
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
           messages: outgoing,
-          modelId: thread.modelId,
+          modelId: activeModelId,
           systemPrompt: settings.systemPrompt,
           userName: settings.userName,
-          webSearch: webSearchEnabled && (getModel(thread.modelId).supportsWebSearch ?? false),
+          webSearch: webSearchEnabled && (getModel(activeModelId).supportsWebSearch ?? false),
           deepThink,
         }),
         signal: ctrl.signal,
@@ -204,12 +208,13 @@ export default function ChatPage({ threadId }: { threadId: string }) {
       }));
       setSession((prev) => {
         const newUsed = prev.used + totalTokens;
+        const requests = (prev.requests ?? 0) + 1;
         let next: SessionUsage;
         if (newUsed >= sessionCap) {
           const hours = 2 + Math.random() * 2; // 2-4h
-          next = { used: newUsed, cooldownUntil: Date.now() + hours * 60 * 60 * 1000 };
+          next = { used: newUsed, requests, cooldownUntil: Date.now() + hours * 60 * 60 * 1000 };
         } else {
-          next = { used: newUsed, cooldownUntil: null };
+          next = { used: newUsed, requests, cooldownUntil: null };
         }
         saveSession(next);
         return next;
@@ -222,13 +227,13 @@ export default function ChatPage({ threadId }: { threadId: string }) {
       setStreamText("");
       abortRef.current = null;
     }
-  }, [thread, session, settings, updateThread, sessionCap, webSearchEnabled, deepThink, currentPlanObj]);
+  }, [thread, session, settings, updateThread, sessionCap, webSearchEnabled, deepThink, currentPlanObj, activeModelId]);
 
   const stop = useCallback(() => {
     abortRef.current?.abort();
   }, []);
 
-  const currentModel = thread ? getModel(thread.modelId) : getModel(DEFAULT_MODEL_ID);
+  const currentModel = getModel(activeModelId);
   const cooldownActive = !!(session.cooldownUntil && Date.now() < session.cooldownUntil);
 
   return (
@@ -257,7 +262,8 @@ export default function ChatPage({ threadId }: { threadId: string }) {
           <ModelPicker
             current={currentModel.id}
             onChange={changeModel}
-            allowedIds={currentPlanObj.models}
+            allowedIds={manualPick ? currentPlanObj.models : []}
+            autoMode={!manualPick}
             onLockedPick={() => setPlansOpen(true)}
           />
           <button

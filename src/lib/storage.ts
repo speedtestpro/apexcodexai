@@ -48,6 +48,7 @@ export type Settings = {
 export type SessionUsage = {
   used: number; // tokens used in current session
   cooldownUntil: number | null; // ms epoch when unlocked
+  requests?: number; // сообщений отправлено в этой сессии (для авто-роутинга)
 };
 
 const K_THREADS = "apexcode:threads:v1";

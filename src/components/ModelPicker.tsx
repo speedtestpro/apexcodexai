@@ -6,11 +6,13 @@ export default function ModelPicker({
   current,
   onChange,
   allowedIds,
+  autoMode,
   onLockedPick,
 }: {
   current: string;
   onChange: (id: string) => void;
   allowedIds: string[];
+  autoMode?: boolean;
   onLockedPick?: (id: string) => void;
 }) {
   const [open, setOpen] = useState(false);
@@ -39,6 +41,7 @@ export default function ModelPicker({
         className="flex items-center gap-1.5 rounded-full bg-secondary hover:bg-accent px-3.5 py-2 text-sm font-medium transition"
       >
         <Sparkles className="h-3.5 w-3.5 text-primary" />
+        {autoMode && <span className="text-[10px] uppercase tracking-widest text-primary/90">Авто</span>}
         <span className="font-serif text-[15px]">{cur.label}</span>
         <ChevronDown className={`h-4 w-4 text-muted-foreground transition-transform ${open ? "rotate-180" : ""}`} />
       </button>
@@ -80,7 +83,9 @@ export default function ModelPicker({
             </div>
 
             <div className="px-4 py-2.5 border-t border-border/50 text-[10px] text-muted-foreground">
-              Смена модели создаёт новый чат.
+              {autoMode
+                ? "Модель выбирается автоматически. Ручной выбор — с тарифа Pro."
+                : "Смена модели создаёт новый чат."}
             </div>
           </div>
         </>

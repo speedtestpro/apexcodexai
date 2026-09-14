@@ -46,6 +46,17 @@ export const APEX_MODELS: ApexModel[] = [
     version: "2.3",
   },
   {
+    id: "apex-mars",
+    label: "ApexMars",
+    description: "Максимальная защита от джейлбрейка и утечек данных.",
+    gateway: "google/gemini-3.1-pro-preview",
+    supportsVision: true,
+    supportsFiles: true,
+    supportsWebSearch: true,
+    badge: "secure",
+    version: "1.1",
+  },
+  {
     id: "apex-vision",
     label: "Apex Vision",
     description: "Генерация изображений по описанию.",
