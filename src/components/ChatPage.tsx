@@ -16,7 +16,7 @@ import ModelPicker from "./ModelPicker";
 import SettingsDialog from "./SettingsDialog";
 import WelcomeOrb from "./WelcomeOrb";
 import PlansDialog from "./PlansDialog";
-import { getPlan, loadPlan, savePlan, type PlanId } from "@/lib/plans";
+import { getPlan, loadPlan, savePlan, autoRouteModelId, type PlanId } from "@/lib/plans";
 import { Menu, MessageSquarePlus, Settings as SettingsIcon } from "lucide-react";
 
 function uid() { return `m_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`; }
@@ -107,9 +107,13 @@ export default function ChatPage({ threadId }: { threadId: string }) {
 
   const currentPlanObj = getPlan(plan);
   const sessionCap = currentPlanObj.sessionCap;
+  const manualPick = currentPlanObj.manualModelPick;
+  const autoModelId = autoRouteModelId(currentPlanObj, session.requests ?? 0);
+  const activeModelId = manualPick ? (thread?.modelId ?? DEFAULT_MODEL_ID) : autoModelId;
 
   const changeModel = useCallback((modelId: string) => {
     if (!thread) return;
+    if (!manualPick) { setPlansOpen(true); return; }
     if (!currentPlanObj.models.includes(modelId)) { setPlansOpen(true); return; }
     if (thread.messages.length === 0) {
       updateThread(thread.id, (t) => ({ ...t, modelId }));
