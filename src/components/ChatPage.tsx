@@ -163,10 +163,10 @@ export default function ChatPage({ threadId }: { threadId: string }) {
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
           messages: outgoing,
-          modelId: thread.modelId,
+          modelId: activeModelId,
           systemPrompt: settings.systemPrompt,
           userName: settings.userName,
-          webSearch: webSearchEnabled && (getModel(thread.modelId).supportsWebSearch ?? false),
+          webSearch: webSearchEnabled && (getModel(activeModelId).supportsWebSearch ?? false),
           deepThink,
         }),
         signal: ctrl.signal,
@@ -208,12 +208,13 @@ export default function ChatPage({ threadId }: { threadId: string }) {
       }));
       setSession((prev) => {
         const newUsed = prev.used + totalTokens;
+        const requests = (prev.requests ?? 0) + 1;
         let next: SessionUsage;
         if (newUsed >= sessionCap) {
           const hours = 2 + Math.random() * 2; // 2-4h
-          next = { used: newUsed, cooldownUntil: Date.now() + hours * 60 * 60 * 1000 };
+          next = { used: newUsed, requests, cooldownUntil: Date.now() + hours * 60 * 60 * 1000 };
         } else {
-          next = { used: newUsed, cooldownUntil: null };
+          next = { used: newUsed, requests, cooldownUntil: null };
         }
         saveSession(next);
         return next;
