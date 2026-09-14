@@ -6,11 +6,13 @@ export default function ModelPicker({
   current,
   onChange,
   allowedIds,
+  autoMode,
   onLockedPick,
 }: {
   current: string;
   onChange: (id: string) => void;
   allowedIds: string[];
+  autoMode?: boolean;
   onLockedPick?: (id: string) => void;
 }) {
   const [open, setOpen] = useState(false);
