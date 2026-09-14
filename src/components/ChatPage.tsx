@@ -262,7 +262,8 @@ export default function ChatPage({ threadId }: { threadId: string }) {
           <ModelPicker
             current={currentModel.id}
             onChange={changeModel}
-            allowedIds={currentPlanObj.models}
+            allowedIds={manualPick ? currentPlanObj.models : []}
+            autoMode={!manualPick}
             onLockedPick={() => setPlansOpen(true)}
           />
           <button
