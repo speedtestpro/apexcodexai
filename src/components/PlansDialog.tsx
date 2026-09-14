@@ -218,9 +218,9 @@ export default function PlansDialog({ open, onClose, currentPlan, userName, onSe
                   { k: "Веб-поиск", test: (p: Plan) => p.models.some((id) => APEX_MODELS.find((m) => m.id === id)?.supportsWebSearch) },
                   { k: "Глубокое раздумие", test: () => true },
                   { k: "Генерация .zip проектов", test: (p: Plan) => p.id !== "free" },
-                  { k: "Приоритетная очередь", test: (p: Plan) => p.priceUsd >= 9 },
-                  { k: "Команда / SSO", test: (p: Plan) => p.id === "team" || p.id === "enterprise" },
-                  { k: "SLA 99.9%", test: (p: Plan) => p.id === "enterprise" },
+                  { k: "Приоритетная очередь", test: (p: Plan) => p.priceUsd > 0 },
+                  { k: "Ручной выбор модели", test: (p: Plan) => p.manualModelPick },
+                  { k: "Максимальная защита (ApexMars)", test: (p: Plan) => p.models.includes("apex-mars") },
                 ].map((row) => (
                   <tr key={row.k} className="border-t border-border/50">
                     <td className="p-2 sticky left-0 bg-card text-muted-foreground">{row.k}</td>
