@@ -6,6 +6,8 @@ export type ApexModel = {
   supportsVision: boolean;
   supportsFiles: boolean;
   supportsWebSearch?: boolean;
+  /** Модель шлюза, если в запросе есть загруженные файлы/фото. */
+  visionGateway?: string;
   badge?: string;
   /** Версия линейки Apex для этой модели. */
   version?: string;
