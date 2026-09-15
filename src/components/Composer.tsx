@@ -16,15 +16,36 @@ type Props = {
   streaming: boolean;
 };
 
+function readAsDataUrl(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const fr = new FileReader();
+    fr.onload = () => resolve(String(fr.result ?? ""));
+    fr.onerror = () => reject(fr.error ?? new Error("read error"));
+    fr.readAsDataURL(file);
+  });
+}
+
+function guessMime(file: File): string {
+  if (file.type) return file.type;
+  const ext = file.name.split(".").pop()?.toLowerCase() ?? "";
+  const map: Record<string, string> = {
+    jpg: "image/jpeg", jpeg: "image/jpeg", png: "image/png", webp: "image/webp",
+    gif: "image/gif", heic: "image/heic", heif: "image/heif", pdf: "application/pdf",
+  };
+  return map[ext] ?? "application/octet-stream";
+}
+
 async function fileToAttachment(file: File): Promise<ChatFileAttachment> {
-  const buf = await file.arrayBuffer();
-  const b64 = btoa(String.fromCharCode(...new Uint8Array(buf)));
-  const dataUrl = `data:${file.type || "application/octet-stream"};base64,${b64}`;
+  const mimeType = guessMime(file);
+  let dataUrl = await readAsDataUrl(file);
+  if (!file.type && dataUrl.startsWith("data:application/octet-stream")) {
+    dataUrl = `data:${mimeType};base64,${dataUrl.split(",")[1] ?? ""}`;
+  }
   return {
     name: file.name,
-    mimeType: file.type || "application/octet-stream",
+    mimeType,
     dataUrl,
-    kind: file.type.startsWith("image/") ? "image" : "file",
+    kind: mimeType.startsWith("image/") ? "image" : "file",
   };
 }
 
@@ -36,16 +57,28 @@ export default function Composer({ disabled, supportsFiles, supportsVision, supp
   const taRef = useRef<HTMLTextAreaElement>(null);
 
   async function onPickFiles(files: FileList | null) {
-    if (!files) return;
+    if (!files || files.length === 0) return;
     const converted: ChatFileAttachment[] = [];
-    let blocked = false;
+    const problems: string[] = [];
     for (const f of Array.from(files)) {
-      if (f.size > 8 * 1024 * 1024) continue; // 8MB
-      if (f.type.startsWith("image/") && !supportsVision) { blocked = true; continue; }
-      converted.push(await fileToAttachment(f));
+      const mime = guessMime(f);
+      if (f.size > 8 * 1024 * 1024) {
+        problems.push(`«${f.name}» больше 8 МБ`);
+        continue;
+      }
+      if (mime.startsWith("image/") && !supportsVision) {
+        problems.push("эта модель не умеет смотреть фото — выберите модель с меткой «Смотрит фото»");
+        continue;
+      }
+      try {
+        converted.push(await fileToAttachment(f));
+      } catch {
+        problems.push(`не удалось прочитать «${f.name}»`);
+      }
     }
-    setAttachments((prev) => [...prev, ...converted]);
-    setHint(blocked ? "Эта модель не умеет смотреть фото — выберите модель с меткой «Смотрит фото»." : null);
+    if (converted.length) setAttachments((prev) => [...prev, ...converted]);
+    setHint(problems.length ? problems.join("; ") : null);
+    if (fileRef.current) fileRef.current.value = "";
   }
 
   function submit() {
@@ -130,7 +163,7 @@ export default function Composer({ disabled, supportsFiles, supportsVision, supp
           type="file"
           multiple
           hidden
-          accept={`${supportsVision ? "image/*," : ""}.pdf,.txt,.md,.json,.csv,.js,.ts,.tsx,.py,.doc,.docx`}
+          accept={`${supportsVision ? "image/*,.heic,.heif," : ""}.pdf,.txt,.md,.json,.csv,.js,.ts,.tsx,.py,.doc,.docx`}
           onChange={(e) => onPickFiles(e.target.files)}
         />
         <textarea
