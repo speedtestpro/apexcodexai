@@ -24,10 +24,10 @@ export const PLANS: Plan[] = [
     sessionCap: 8_000,
     models: ["apex-flash", "apex-pro"],
     manualModelPick: false,
-    autoProRequests: 3,
+    autoProRequests: 12,
     features: [
       "8 000 токенов на сессию",
-      "Авто-выбор модели: первые 3 запроса на Apex Pro, дальше Apex Flash",
+      "Авто-выбор модели: первые 12 запросов на Apex Pro, дальше Apex Flash",
       "Ручной выбор модели недоступен",
       "Файлы и изображения (ограниченно)",
     ],

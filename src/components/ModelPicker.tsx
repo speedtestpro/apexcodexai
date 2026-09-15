@@ -34,6 +34,18 @@ export default function ModelPicker({
   const available = list.filter((m) => allowedIds.includes(m.id));
   const locked = list.filter((m) => !allowedIds.includes(m.id));
 
+  if (autoMode) {
+    return (
+      <button
+        onClick={() => onLockedPick?.(current)}
+        className="flex items-center gap-1.5 rounded-full bg-secondary hover:bg-accent px-3.5 py-2 text-sm font-medium transition"
+      >
+        <Sparkles className="h-3.5 w-3.5 text-primary" />
+        <span className="text-[11px] uppercase tracking-widest text-primary/90">Авто</span>
+      </button>
+    );
+  }
+
   return (
     <div ref={ref} className="relative">
       <button
@@ -41,7 +53,6 @@ export default function ModelPicker({
         className="flex items-center gap-1.5 rounded-full bg-secondary hover:bg-accent px-3.5 py-2 text-sm font-medium transition"
       >
         <Sparkles className="h-3.5 w-3.5 text-primary" />
-        {autoMode && <span className="text-[10px] uppercase tracking-widest text-primary/90">Авто</span>}
         <span className="font-serif text-[15px]">{cur.label}</span>
         <ChevronDown className={`h-4 w-4 text-muted-foreground transition-transform ${open ? "rotate-180" : ""}`} />
       </button>
