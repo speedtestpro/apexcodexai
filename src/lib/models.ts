@@ -50,12 +50,13 @@ export const APEX_MODELS: ApexModel[] = [
   {
     id: "apex-mars",
     label: "ApexMars",
-    description: "Максимальная защита от джейлбрейка и утечек данных.",
-    gateway: "google/gemini-3.1-pro-preview",
+    description: "Для школьников: помощь с домашкой и объяснения. Максимальная защита от джейлбрейка.",
+    gateway: "google/gemini-3.8-flash",
+    visionGateway: "google/gemini-3.1-pro-preview",
     supportsVision: true,
     supportsFiles: true,
     supportsWebSearch: true,
-    badge: "secure",
+    badge: "школа",
     version: "1.1",
   },
   {
