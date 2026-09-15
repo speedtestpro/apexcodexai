@@ -16,15 +16,36 @@ type Props = {
   streaming: boolean;
 };
 
+function readAsDataUrl(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const fr = new FileReader();
+    fr.onload = () => resolve(String(fr.result ?? ""));
+    fr.onerror = () => reject(fr.error ?? new Error("read error"));
+    fr.readAsDataURL(file);
+  });
+}
+
+function guessMime(file: File): string {
+  if (file.type) return file.type;
+  const ext = file.name.split(".").pop()?.toLowerCase() ?? "";
+  const map: Record<string, string> = {
+    jpg: "image/jpeg", jpeg: "image/jpeg", png: "image/png", webp: "image/webp",
+    gif: "image/gif", heic: "image/heic", heif: "image/heif", pdf: "application/pdf",
+  };
+  return map[ext] ?? "application/octet-stream";
+}
+
 async function fileToAttachment(file: File): Promise<ChatFileAttachment> {
-  const buf = await file.arrayBuffer();
-  const b64 = btoa(String.fromCharCode(...new Uint8Array(buf)));
-  const dataUrl = `data:${file.type || "application/octet-stream"};base64,${b64}`;
+  const mimeType = guessMime(file);
+  let dataUrl = await readAsDataUrl(file);
+  if (!file.type && dataUrl.startsWith("data:application/octet-stream")) {
+    dataUrl = `data:${mimeType};base64,${dataUrl.split(",")[1] ?? ""}`;
+  }
   return {
     name: file.name,
-    mimeType: file.type || "application/octet-stream",
+    mimeType,
     dataUrl,
-    kind: file.type.startsWith("image/") ? "image" : "file",
+    kind: mimeType.startsWith("image/") ? "image" : "file",
   };
 }
 
