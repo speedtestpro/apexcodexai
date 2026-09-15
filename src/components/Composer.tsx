@@ -57,16 +57,28 @@ export default function Composer({ disabled, supportsFiles, supportsVision, supp
   const taRef = useRef<HTMLTextAreaElement>(null);
 
   async function onPickFiles(files: FileList | null) {
-    if (!files) return;
+    if (!files || files.length === 0) return;
     const converted: ChatFileAttachment[] = [];
-    let blocked = false;
+    const problems: string[] = [];
     for (const f of Array.from(files)) {
-      if (f.size > 8 * 1024 * 1024) continue; // 8MB
-      if (f.type.startsWith("image/") && !supportsVision) { blocked = true; continue; }
-      converted.push(await fileToAttachment(f));
+      const mime = guessMime(f);
+      if (f.size > 8 * 1024 * 1024) {
+        problems.push(`«${f.name}» больше 8 МБ`);
+        continue;
+      }
+      if (mime.startsWith("image/") && !supportsVision) {
+        problems.push("эта модель не умеет смотреть фото — выберите модель с меткой «Смотрит фото»");
+        continue;
+      }
+      try {
+        converted.push(await fileToAttachment(f));
+      } catch {
+        problems.push(`не удалось прочитать «${f.name}»`);
+      }
     }
-    setAttachments((prev) => [...prev, ...converted]);
-    setHint(blocked ? "Эта модель не умеет смотреть фото — выберите модель с меткой «Смотрит фото»." : null);
+    if (converted.length) setAttachments((prev) => [...prev, ...converted]);
+    setHint(problems.length ? problems.join("; ") : null);
+    if (fileRef.current) fileRef.current.value = "";
   }
 
   function submit() {
