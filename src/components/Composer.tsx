@@ -163,7 +163,7 @@ export default function Composer({ disabled, supportsFiles, supportsVision, supp
           type="file"
           multiple
           hidden
-          accept={`${supportsVision ? "image/*," : ""}.pdf,.txt,.md,.json,.csv,.js,.ts,.tsx,.py,.doc,.docx`}
+          accept={`${supportsVision ? "image/*,.heic,.heif," : ""}.pdf,.txt,.md,.json,.csv,.js,.ts,.tsx,.py,.doc,.docx`}
           onChange={(e) => onPickFiles(e.target.files)}
         />
         <textarea
