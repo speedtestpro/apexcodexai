@@ -18,7 +18,7 @@ export const APEX_MODELS: ApexModel[] = [
     id: "apex-flash",
     label: "Apex Flash",
     description: "Быстрый универсальный. По умолчанию.",
-    gateway: "google/gemini-3.7-flash",
+    gateway: "google/gemini-3.6-flash",
     supportsVision: true,
     supportsFiles: true,
     supportsWebSearch: true,
