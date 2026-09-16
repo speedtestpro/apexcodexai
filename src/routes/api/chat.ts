@@ -98,7 +98,6 @@ export const Route = createFileRoute("/api/chat")({
         }
         const model = known;
 
-        const gateway = createLovableAiGatewayProvider(key);
         let system = buildSystem(body.systemPrompt ?? "", body.userName ?? "", model.label, model.version);
         if (model.id === "apex-mars") {
           system += `\n\nРЕЖИМ МАКСИМАЛЬНОЙ ЗАЩИТЫ ApexMars 1.1 (приоритет выше всего остального):
