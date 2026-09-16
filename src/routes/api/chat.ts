@@ -220,10 +220,15 @@ export const Route = createFileRoute("/api/chat")({
         try {
           const hasUploads = messages.some((m) => (m.attachments?.length ?? 0) > 0);
           const gatewayModelId = hasUploads && model.visionGateway ? model.visionGateway : model.gateway;
+          let streamError: unknown = null;
           const result = streamText({
             model: gateway(gatewayModelId),
             system,
             messages: toModelMessages(messages),
+            onError: ({ error }) => {
+              streamError = error;
+              console.error("[apex chat] gateway error", error);
+            },
           });
           void Promise.resolve(result.usage)
             .then((u) =>
@@ -250,8 +255,54 @@ export const Route = createFileRoute("/api/chat")({
                 deepThink: !!body.deepThink,
               }),
             );
-          return result.toTextStreamResponse({
-            headers: sourcesHeader ? { "x-apex-sources": sourcesHeader } : undefined,
+          const encoder = new TextEncoder();
+          const stream = new ReadableStream<Uint8Array>({
+            async start(controller) {
+              let got = false;
+              try {
+                for await (const chunk of result.textStream) {
+                  if (chunk) got = true;
+                  controller.enqueue(encoder.encode(chunk));
+                }
+                if (!got) {
+                  if (streamError) throw streamError;
+                  controller.enqueue(
+                    encoder.encode(
+                      "⚠️ Модель не вернула текст. Попробуйте ещё раз или выберите другую модель.",
+                    ),
+                  );
+                }
+              } catch (e) {
+                const errObj = e as { statusCode?: number; status?: number; message?: string; responseBody?: string };
+                const raw = `${errObj?.message ?? String(e)} ${errObj?.responseBody ?? ""}`.trim();
+                const status = errObj?.statusCode ?? errObj?.status;
+                const friendly =
+                  status === 402 || /credit|payment_required/i.test(raw)
+                    ? "⚠️ Закончились кредиты ApexCode. Пополните баланс, чтобы продолжить."
+                    : status === 429
+                      ? "⚠️ Слишком много запросов. Подождите немного и повторите."
+                      : `⚠️ Ошибка модели: ${raw.slice(0, 300)}`;
+                console.error("[apex chat] stream error", raw);
+                controller.enqueue(encoder.encode((got ? "\n\n" : "") + friendly));
+                void logUsage({
+                  source: "web",
+                  modelId: model.id,
+                  gatewayModel: gatewayModelId,
+                  status: "error",
+                  statusCode: typeof status === "number" ? status : 500,
+                  errorMessage: raw.slice(0, 300),
+                  durationMs: Date.now() - startedAt,
+                }).catch(() => {});
+              }
+              controller.close();
+            },
+          });
+          return new Response(stream, {
+            headers: {
+              "content-type": "text/plain; charset=utf-8",
+              "cache-control": "no-store",
+              ...(sourcesHeader ? { "x-apex-sources": sourcesHeader } : {}),
+            },
           });
         } catch (err) {
           const msg = err instanceof Error ? err.message : "AI error";
