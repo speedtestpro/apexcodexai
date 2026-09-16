@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { streamText, type ModelMessage } from "ai";
-import { createLovableAiGatewayProvider } from "@/lib/ai-gateway.server";
+import { resolveModel, generateImageDataUrl } from "@/lib/ai-gateway.server";
 import { APEX_MODELS } from "@/lib/models";
 import { webSearch, formatWebSearchForPrompt } from "@/lib/websearch.server";
 
