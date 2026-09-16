@@ -180,7 +180,7 @@ export const Route = createFileRoute("/api/chat")({
           const gatewayModelId = hasUploads && model.visionGateway ? model.visionGateway : model.gateway;
           let streamError: unknown = null;
           const result = streamText({
-            model: gateway(gatewayModelId),
+            model: resolveModel(gatewayModelId),
             system,
             messages: toModelMessages(messages),
             onError: ({ error }) => {
