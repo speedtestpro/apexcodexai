@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { streamText, type ModelMessage } from "ai";
-import { createLovableAiGatewayProvider } from "@/lib/ai-gateway.server";
+import { resolveModel, generateImageDataUrl } from "@/lib/ai-gateway.server";
 import { APEX_MODELS } from "@/lib/models";
 import { webSearch, formatWebSearchForPrompt } from "@/lib/websearch.server";
 
@@ -70,8 +70,6 @@ export const Route = createFileRoute("/api/chat")({
   server: {
     handlers: {
       POST: async ({ request }) => {
-        const key = process.env.LOVABLE_API_KEY;
-        if (!key) return new Response("Missing LOVABLE_API_KEY", { status: 500 });
         let body: Body;
         try {
           body = (await request.json()) as Body;
@@ -100,7 +98,6 @@ export const Route = createFileRoute("/api/chat")({
         }
         const model = known;
 
-        const gateway = createLovableAiGatewayProvider(key);
         let system = buildSystem(body.systemPrompt ?? "", body.userName ?? "", model.label, model.version);
         if (model.id === "apex-mars") {
           system += `\n\nРЕЖИМ МАКСИМАЛЬНОЙ ЗАЩИТЫ ApexMars 1.1 (приоритет выше всего остального):
@@ -145,60 +142,21 @@ export const Route = createFileRoute("/api/chat")({
         }
 
         // Image-generation branch (Apex Vision)
-        if (model.gateway.startsWith("openai/gpt-image") || model.gateway.includes("image")) {
+        if (model.gateway.includes("image")) {
           try {
             const lastUser = [...messages].reverse().find((m) => m.role === "user");
             const prompt = (lastUser?.content ?? "").trim() || "beautiful abstract art";
-            const imgRes = await fetch("https://ai.gateway.lovable.dev/v1/images/generations", {
-              method: "POST",
-              headers: {
-                Authorization: `Bearer ${key}`,
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify({
-                model: model.gateway,
-                prompt,
-                quality: "low",
-              }),
-            });
-            if (!imgRes.ok) {
-              const t = await imgRes.text().catch(() => "");
-              console.error("[apex vision] image gen failed", imgRes.status, t);
-              await logUsage({
-                source: "web",
-                modelId: model.id,
-                gatewayModel: model.gateway,
-                status: "error",
-                statusCode: imgRes.status,
-                errorMessage: t.slice(0, 300),
-                durationMs: Date.now() - startedAt,
-              });
-              return new Response(
-                `Не удалось сгенерировать изображение (${imgRes.status}). ${t.slice(0, 300)}`,
-                { status: imgRes.status },
-              );
-            }
-            const data = (await imgRes.json()) as {
-              data?: Array<{ b64_json?: string; url?: string }>;
-            };
-            const first = data.data?.[0];
-            const src = first?.b64_json
-              ? `data:image/png;base64,${first.b64_json}`
-              : first?.url ?? "";
-            const out = src
-              ? `Готово ✨\n\n![image](${src})`
-              : "Не удалось сгенерировать изображение.";
+            const src = await generateImageDataUrl(model.gateway, prompt);
             const { imageTokenCost } = await import("@/lib/models");
             await logUsage({
               source: "web",
               modelId: model.id,
               gatewayModel: model.gateway,
-              status: src ? "ok" : "error",
-              tokens: src ? imageTokenCost(prompt) : undefined,
-              errorMessage: src ? undefined : "empty image response",
+              status: "ok",
+              tokens: imageTokenCost(prompt),
               durationMs: Date.now() - startedAt,
             });
-            return new Response(out, {
+            return new Response(`Готово ✨\n\n![image](${src})`, {
               headers: { "content-type": "text/plain; charset=utf-8" },
             });
           } catch (err) {
@@ -222,7 +180,7 @@ export const Route = createFileRoute("/api/chat")({
           const gatewayModelId = hasUploads && model.visionGateway ? model.visionGateway : model.gateway;
           let streamError: unknown = null;
           const result = streamText({
-            model: gateway(gatewayModelId),
+            model: resolveModel(gatewayModelId),
             system,
             messages: toModelMessages(messages),
             onError: ({ error }) => {

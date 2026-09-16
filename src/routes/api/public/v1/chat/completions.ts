@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { streamText, type ModelMessage } from "ai";
-import { createLovableAiGatewayProvider } from "@/lib/ai-gateway.server";
+import { resolveModel, generateImageDataUrl } from "@/lib/ai-gateway.server";
 import { APEX_MODELS, imageTokenCost } from "@/lib/models";
 import { getPlan } from "@/lib/plans";
 
@@ -73,8 +73,6 @@ async function handlePost({ request }: { request: Request }) {
         const { extractBearer, getApiKey, touchApiKey } = await import("@/lib/apikeys.server");
         const { logUsage } = await import("@/lib/usage.server");
         const startedAt = Date.now();
-        const gatewayKey = process.env["LOVABLE_API_KEY"];
-        if (!gatewayKey) return err(500, "server_error", "Gateway is not configured");
 
         const apiKey = extractBearer(request);
         if (!apiKey) return err(401, "invalid_api_key", "Отсутствует заголовок Authorization: Bearer apex_sk_...");
@@ -122,15 +120,13 @@ async function handlePost({ request }: { request: Request }) {
             typeof last?.content === "string"
               ? last.content
               : (last?.content ?? []).map((p) => ("text" in p ? p.text : "")).join(" ");
-          const r = await fetch("https://ai.gateway.lovable.dev/v1/images/generations", {
-            method: "POST",
-            headers: { Authorization: `Bearer ${gatewayKey}`, "Content-Type": "application/json" },
-            body: JSON.stringify({ model: model.gateway, prompt: prompt || "abstract art", quality: "low" }),
-          });
-          if (!r.ok) return err(r.status, "upstream_error", (await r.text().catch(() => "")).slice(0, 300));
-          const data = (await r.json()) as { data?: Array<{ b64_json?: string; url?: string }> };
-          const first = data.data?.[0];
-          const src = first?.b64_json ? `data:image/png;base64,${first.b64_json}` : first?.url ?? "";
+          let src: string;
+          try {
+            src = await generateImageDataUrl(model.gateway, prompt || "abstract art");
+          } catch (e) {
+            const st = gatewayStatus(e);
+            return err(st, codeFor(st), e instanceof Error ? e.message : "image error");
+          }
           const imageTokens = imageTokenCost(prompt);
           await touchApiKey(apiKey, imageTokens).catch(() => {});
           await logUsage({
