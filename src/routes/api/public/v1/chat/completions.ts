@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { streamText, type ModelMessage } from "ai";
-import { createLovableAiGatewayProvider } from "@/lib/ai-gateway.server";
+import { resolveModel, generateImageDataUrl } from "@/lib/ai-gateway.server";
 import { APEX_MODELS, imageTokenCost } from "@/lib/models";
 import { getPlan } from "@/lib/plans";
 
@@ -73,8 +73,6 @@ async function handlePost({ request }: { request: Request }) {
         const { extractBearer, getApiKey, touchApiKey } = await import("@/lib/apikeys.server");
         const { logUsage } = await import("@/lib/usage.server");
         const startedAt = Date.now();
-        const gatewayKey = process.env["LOVABLE_API_KEY"];
-        if (!gatewayKey) return err(500, "server_error", "Gateway is not configured");
 
         const apiKey = extractBearer(request);
         if (!apiKey) return err(401, "invalid_api_key", "Отсутствует заголовок Authorization: Bearer apex_sk_...");
