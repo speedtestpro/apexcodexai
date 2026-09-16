@@ -265,6 +265,7 @@ export const Route = createFileRoute("/api/chat")({
                   controller.enqueue(encoder.encode(chunk));
                 }
                 if (!got) {
+                  if (streamError) throw streamError;
                   controller.enqueue(
                     encoder.encode(
                       "⚠️ Модель не вернула текст. Попробуйте ещё раз или выберите другую модель.",
@@ -272,9 +273,9 @@ export const Route = createFileRoute("/api/chat")({
                   );
                 }
               } catch (e) {
-                const raw = e instanceof Error ? e.message : String(e);
-                const status = (e as { statusCode?: number; status?: number })?.statusCode ??
-                  (e as { status?: number })?.status;
+                const errObj = e as { statusCode?: number; status?: number; message?: string; responseBody?: string };
+                const raw = `${errObj?.message ?? String(e)} ${errObj?.responseBody ?? ""}`.trim();
+                const status = errObj?.statusCode ?? errObj?.status;
                 const friendly =
                   status === 402 || /credit|payment_required/i.test(raw)
                     ? "⚠️ Закончились кредиты ApexCode. Пополните баланс, чтобы продолжить."
