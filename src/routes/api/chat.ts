@@ -179,15 +179,19 @@ export const Route = createFileRoute("/api/chat")({
           const hasUploads = messages.some((m) => (m.attachments?.length ?? 0) > 0);
           const gatewayModelId = hasUploads && model.visionGateway ? model.visionGateway : model.gateway;
           let streamError: unknown = null;
-          const result = streamText({
-            model: resolveModel(gatewayModelId),
-            system,
-            messages: toModelMessages(messages),
-            onError: ({ error }) => {
-              streamError = error;
-              console.error("[apex chat] gateway error", error);
-            },
-          });
+          let activeGatewayId = gatewayModelId;
+          const makeResult = (gw: string) =>
+            streamText({
+              model: resolveModel(gw),
+              system,
+              messages: toModelMessages(messages),
+              maxRetries: 0,
+              onError: ({ error }) => {
+                streamError = error;
+                console.error("[apex chat] gateway error", error);
+              },
+            });
+          let result = makeResult(activeGatewayId);
           void Promise.resolve(result.usage)
             .then((u) =>
               logUsage({
@@ -217,18 +221,35 @@ export const Route = createFileRoute("/api/chat")({
           const stream = new ReadableStream<Uint8Array>({
             async start(controller) {
               let got = false;
+              let fallbackTried = false;
               try {
-                for await (const chunk of result.textStream) {
-                  if (chunk) got = true;
-                  controller.enqueue(encoder.encode(chunk));
-                }
-                if (!got) {
-                  if (streamError) throw streamError;
-                  controller.enqueue(
-                    encoder.encode(
-                      "⚠️ Модель не вернула текст. Попробуйте ещё раз или выберите другую модель.",
-                    ),
-                  );
+                for (;;) {
+                  try {
+                    for await (const chunk of result.textStream) {
+                      if (chunk) got = true;
+                      controller.enqueue(encoder.encode(chunk));
+                    }
+                    if (!got) {
+                      if (streamError) throw streamError;
+                      controller.enqueue(
+                        encoder.encode(
+                          "⚠️ Модель не вернула текст. Попробуйте ещё раз или выберите другую модель.",
+                        ),
+                      );
+                    }
+                    break;
+                  } catch (e) {
+                    const eObj = e as { statusCode?: number; status?: number };
+                    const st = eObj?.statusCode ?? eObj?.status;
+                    if (!got && !fallbackTried && (st === 429 || (typeof st === "number" && st >= 500))) {
+                      fallbackTried = true;
+                      activeGatewayId = "openai/gpt-5.6-luna";
+                      streamError = null;
+                      result = makeResult(activeGatewayId);
+                      continue;
+                    }
+                    throw e;
+                  }
                 }
               } catch (e) {
                 const errObj = e as { statusCode?: number; status?: number; message?: string; responseBody?: string };
@@ -245,7 +266,7 @@ export const Route = createFileRoute("/api/chat")({
                 void logUsage({
                   source: "web",
                   modelId: model.id,
-                  gatewayModel: gatewayModelId,
+                  gatewayModel: activeGatewayId,
                   status: "error",
                   statusCode: typeof status === "number" ? status : 500,
                   errorMessage: raw.slice(0, 300),
