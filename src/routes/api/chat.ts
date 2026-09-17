@@ -179,15 +179,19 @@ export const Route = createFileRoute("/api/chat")({
           const hasUploads = messages.some((m) => (m.attachments?.length ?? 0) > 0);
           const gatewayModelId = hasUploads && model.visionGateway ? model.visionGateway : model.gateway;
           let streamError: unknown = null;
-          const result = streamText({
-            model: resolveModel(gatewayModelId),
-            system,
-            messages: toModelMessages(messages),
-            onError: ({ error }) => {
-              streamError = error;
-              console.error("[apex chat] gateway error", error);
-            },
-          });
+          let activeGatewayId = gatewayModelId;
+          const makeResult = (gw: string) =>
+            streamText({
+              model: resolveModel(gw),
+              system,
+              messages: toModelMessages(messages),
+              maxRetries: 0,
+              onError: ({ error }) => {
+                streamError = error;
+                console.error("[apex chat] gateway error", error);
+              },
+            });
+          let result = makeResult(activeGatewayId);
           void Promise.resolve(result.usage)
             .then((u) =>
               logUsage({
