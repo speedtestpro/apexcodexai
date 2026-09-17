@@ -221,20 +221,37 @@ export const Route = createFileRoute("/api/chat")({
           const stream = new ReadableStream<Uint8Array>({
             async start(controller) {
               let got = false;
-              try {
-                for await (const chunk of result.textStream) {
-                  if (chunk) got = true;
-                  controller.enqueue(encoder.encode(chunk));
+              let fallbackTried = false;
+              for (;;) {
+                try {
+                  for await (const chunk of result.textStream) {
+                    if (chunk) got = true;
+                    controller.enqueue(encoder.encode(chunk));
+                  }
+                  if (!got) {
+                    if (streamError) throw streamError;
+                    controller.enqueue(
+                      encoder.encode(
+                        "⚠️ Модель не вернула текст. Попробуйте ещё раз или выберите другую модель.",
+                      ),
+                    );
+                  }
+                  break;
+                } catch (e) {
+                  const eObj = e as { statusCode?: number; status?: number };
+                  const st = eObj?.statusCode ?? eObj?.status;
+                  if (!got && !fallbackTried && (st === 429 || (typeof st === "number" && st >= 500))) {
+                    fallbackTried = true;
+                    activeGatewayId = "openai/gpt-5.6-luna";
+                    streamError = null;
+                    result = makeResult(activeGatewayId);
+                    continue;
+                  }
+                  throw e;
                 }
-                if (!got) {
-                  if (streamError) throw streamError;
-                  controller.enqueue(
-                    encoder.encode(
-                      "⚠️ Модель не вернула текст. Попробуйте ещё раз или выберите другую модель.",
-                    ),
-                  );
-                }
-              } catch (e) {
+              }
+              try { 0; } catch (e) { void e; }
+              if (false as boolean) {
                 const errObj = e as { statusCode?: number; status?: number; message?: string; responseBody?: string };
                 const raw = `${errObj?.message ?? String(e)} ${errObj?.responseBody ?? ""}`.trim();
                 const status = errObj?.statusCode ?? errObj?.status;
