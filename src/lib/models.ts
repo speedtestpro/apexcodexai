@@ -52,7 +52,7 @@ export const APEX_MODELS: ApexModel[] = [
     label: "ApexMars",
     description: "Для школьников: помощь с домашкой и объяснения. Максимальная защита от джейлбрейка.",
     gateway: "google/gemini-3.8-flash",
-    visionGateway: "google/gemini-3.1-pro-preview",
+    visionGateway: "google/gemini-robotics-er-2-preview",
     supportsVision: true,
     supportsFiles: true,
     supportsWebSearch: true,
