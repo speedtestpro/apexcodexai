@@ -222,36 +222,36 @@ export const Route = createFileRoute("/api/chat")({
             async start(controller) {
               let got = false;
               let fallbackTried = false;
-              for (;;) {
-                try {
-                  for await (const chunk of result.textStream) {
-                    if (chunk) got = true;
-                    controller.enqueue(encoder.encode(chunk));
+              try {
+                for (;;) {
+                  try {
+                    for await (const chunk of result.textStream) {
+                      if (chunk) got = true;
+                      controller.enqueue(encoder.encode(chunk));
+                    }
+                    if (!got) {
+                      if (streamError) throw streamError;
+                      controller.enqueue(
+                        encoder.encode(
+                          "⚠️ Модель не вернула текст. Попробуйте ещё раз или выберите другую модель.",
+                        ),
+                      );
+                    }
+                    break;
+                  } catch (e) {
+                    const eObj = e as { statusCode?: number; status?: number };
+                    const st = eObj?.statusCode ?? eObj?.status;
+                    if (!got && !fallbackTried && (st === 429 || (typeof st === "number" && st >= 500))) {
+                      fallbackTried = true;
+                      activeGatewayId = "openai/gpt-5.6-luna";
+                      streamError = null;
+                      result = makeResult(activeGatewayId);
+                      continue;
+                    }
+                    throw e;
                   }
-                  if (!got) {
-                    if (streamError) throw streamError;
-                    controller.enqueue(
-                      encoder.encode(
-                        "⚠️ Модель не вернула текст. Попробуйте ещё раз или выберите другую модель.",
-                      ),
-                    );
-                  }
-                  break;
-                } catch (e) {
-                  const eObj = e as { statusCode?: number; status?: number };
-                  const st = eObj?.statusCode ?? eObj?.status;
-                  if (!got && !fallbackTried && (st === 429 || (typeof st === "number" && st >= 500))) {
-                    fallbackTried = true;
-                    activeGatewayId = "openai/gpt-5.6-luna";
-                    streamError = null;
-                    result = makeResult(activeGatewayId);
-                    continue;
-                  }
-                  throw e;
                 }
-              }
-              try { 0; } catch (e) { void e; }
-              if (false as boolean) {
+              } catch (e) {
                 const errObj = e as { statusCode?: number; status?: number; message?: string; responseBody?: string };
                 const raw = `${errObj?.message ?? String(e)} ${errObj?.responseBody ?? ""}`.trim();
                 const status = errObj?.statusCode ?? errObj?.status;
@@ -266,7 +266,7 @@ export const Route = createFileRoute("/api/chat")({
                 void logUsage({
                   source: "web",
                   modelId: model.id,
-                  gatewayModel: gatewayModelId,
+                  gatewayModel: activeGatewayId,
                   status: "error",
                   statusCode: typeof status === "number" ? status : 500,
                   errorMessage: raw.slice(0, 300),
