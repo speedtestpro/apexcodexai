@@ -40,7 +40,7 @@ export const APEX_MODELS: ApexModel[] = [
     id: "apex-quasar",
     label: "Apex Quasar",
     description: "Флагман нового поколения для сложного кода и рассуждений.",
-    gateway: "openai/gpt-5.6-luna",
+    gateway: "google/gemini-3.1-pro-preview",
     supportsVision: true,
     supportsFiles: true,
     supportsWebSearch: true,

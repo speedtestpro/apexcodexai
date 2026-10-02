@@ -90,9 +90,47 @@ export function loadThreads(): Thread[] {
   }, []);
 }
 
+const MAX_INLINE = 150_000; // символов data-url, которые храним в памяти браузера
+
+function slimThreads(threads: Thread[]): Thread[] {
+  return threads.map((t) => ({
+    ...t,
+    messages: t.messages.map((m) => ({
+      ...m,
+      content:
+        m.content.length > MAX_INLINE
+          ? m.content.replace(/!\[([^\]]*)\]\(data:[^)]+\)/g, "_(изображение не сохранено — слишком большое)_")
+          : m.content,
+      attachments: m.attachments?.map((a) =>
+        a.dataUrl.length > MAX_INLINE ? { ...a, dataUrl: "" } : a,
+      ),
+    })),
+  }));
+}
+
+let saveTimer: ReturnType<typeof setTimeout> | null = null;
+let pending: Thread[] | null = null;
+
 export function saveThreads(threads: Thread[]) {
   if (typeof window === "undefined") return;
-  localStorage.setItem(K_THREADS, JSON.stringify(threads));
+  pending = threads;
+  if (saveTimer) return;
+  saveTimer = setTimeout(() => {
+    saveTimer = null;
+    const data = pending;
+    pending = null;
+    if (!data) return;
+    try {
+      localStorage.setItem(K_THREADS, JSON.stringify(slimThreads(data)));
+    } catch {
+      try {
+        // не хватает места — оставляем только последние 10 чатов
+        localStorage.setItem(K_THREADS, JSON.stringify(slimThreads(data.slice(0, 10))));
+      } catch {
+        /* ignore */
+      }
+    }
+  }, 400);
 }
 
 export function loadActiveId(): string | null {
