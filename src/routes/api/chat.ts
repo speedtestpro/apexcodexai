@@ -170,8 +170,14 @@ export const Route = createFileRoute("/api/chat")({
               statusCode: 500,
               errorMessage: msg,
               durationMs: Date.now() - startedAt,
-            });
-            return new Response(msg, { status: 500 });
+            }).catch(() => {});
+            const busy = /429|quota|rate/i.test(msg);
+            return new Response(
+              busy
+                ? "⚠️ Генерация картинок сейчас перегружена. Подождите немного и попробуйте снова."
+                : "⚠️ Не удалось создать изображение. Попробуйте другое описание.",
+              { headers: { "content-type": "text/plain; charset=utf-8" } },
+            );
           }
         }
 
@@ -298,8 +304,11 @@ export const Route = createFileRoute("/api/chat")({
             durationMs: Date.now() - startedAt,
             webSearch: !!body.webSearch,
             deepThink: !!body.deepThink,
+          }).catch(() => {});
+          console.error("[apex chat]", msg);
+          return new Response("⚠️ Модель временно недоступна. Попробуйте ещё раз через минуту.", {
+            headers: { "content-type": "text/plain; charset=utf-8" },
           });
-          return new Response(msg, { status: 500 });
         }
       },
     },

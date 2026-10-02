@@ -63,7 +63,7 @@ export const APEX_MODELS: ApexModel[] = [
     id: "apex-vision",
     label: "Apex Vision",
     description: "Генерация изображений по описанию.",
-    gateway: "google/gemini-3.1-flash-image",
+    gateway: "lovable/openai/gpt-image-2.5-sunburst",
     supportsVision: true,
     supportsFiles: true,
     badge: "image",
