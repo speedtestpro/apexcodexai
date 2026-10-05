@@ -249,10 +249,7 @@ export const Route = createFileRoute("/api/chat")({
                     const st = eObj?.statusCode ?? eObj?.status;
                     if (!got && !fallbackTried && (st === 429 || (typeof st === "number" && st >= 500))) {
                       fallbackTried = true;
-                      activeGatewayId =
-                        activeGatewayId === "google/gemini-3.6-flash"
-                          ? "google/gemini-3.1-pro-preview"
-                          : "google/gemini-3.6-flash";
+                      activeGatewayId = "agnes/agnes-2.5-flash";
                       streamError = null;
                       result = makeResult(activeGatewayId);
                       continue;

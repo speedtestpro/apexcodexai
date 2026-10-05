@@ -46,6 +46,15 @@ export function resolveModel(gatewayModelId: string): LanguageModel {
     if (!key) throw new Error("Missing GEMINI_API_KEY");
     return geminiProvider(key)(name);
   }
+  if (vendor === "agnes") {
+    const key = process.env["OPENAI_API_KEY"];
+    if (!key) throw new Error("Missing Agnes API key");
+    return createOpenAICompatible({
+      name: "agnes",
+      baseURL: "https://apihub.agnes-ai.com/v1",
+      headers: { Authorization: `Bearer ${key}` },
+    })(name);
+  }
   if (vendor === "openai") {
     const key = process.env["OPENAI_API_KEY"];
     if (!key) throw new Error("Missing OPENAI_API_KEY");
