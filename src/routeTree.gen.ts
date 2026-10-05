@@ -9,46 +9,26 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as StatsRouteImport } from './routes/stats'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as CThreadIdRouteImport } from './routes/c.$threadId'
-import { Route as ApiUpgradeRouteImport } from './routes/api/upgrade'
-import { Route as ApiStatsRouteImport } from './routes/api/stats'
-import { Route as ApiChatRouteImport } from './routes/api/chat'
+import { Route as StatsRouteImport } from './routes/stats'
 import { Route as ApiApikeyRouteImport } from './routes/api/apikey'
+import { Route as ApiChatRouteImport } from './routes/api/chat'
+import { Route as ApiStatsRouteImport } from './routes/api/stats'
+import { Route as ApiUpgradeRouteImport } from './routes/api/upgrade'
+import { Route as CThreadIdRouteImport } from './routes/c.$threadId'
 import { Route as ApiUpgradeStatusRouteImport } from './routes/api/upgrade.status'
-import { Route as ApiPublicV1ModelsRouteImport } from './routes/api/public/v1/models'
 import { Route as ApiPublicTelegramWebhookRouteImport } from './routes/api/public/telegram/webhook'
+import { Route as ApiPublicV1ModelsRouteImport } from './routes/api/public/v1/models'
 import { Route as ApiPublicV1ChatCompletionsRouteImport } from './routes/api/public/v1/chat/completions'
 
-const StatsRoute = StatsRouteImport.update({
-  id: '/stats',
-  path: '/stats',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const CThreadIdRoute = CThreadIdRouteImport.update({
-  id: '/c/$threadId',
-  path: '/c/$threadId',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiUpgradeRoute = ApiUpgradeRouteImport.update({
-  id: '/api/upgrade',
-  path: '/api/upgrade',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiStatsRoute = ApiStatsRouteImport.update({
-  id: '/api/stats',
-  path: '/api/stats',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiChatRoute = ApiChatRouteImport.update({
-  id: '/api/chat',
-  path: '/api/chat',
+const StatsRoute = StatsRouteImport.update({
+  id: '/stats',
+  path: '/stats',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiApikeyRoute = ApiApikeyRouteImport.update({
@@ -56,15 +36,30 @@ const ApiApikeyRoute = ApiApikeyRouteImport.update({
   path: '/api/apikey',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiChatRoute = ApiChatRouteImport.update({
+  id: '/api/chat',
+  path: '/api/chat',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiStatsRoute = ApiStatsRouteImport.update({
+  id: '/api/stats',
+  path: '/api/stats',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiUpgradeRoute = ApiUpgradeRouteImport.update({
+  id: '/api/upgrade',
+  path: '/api/upgrade',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CThreadIdRoute = CThreadIdRouteImport.update({
+  id: '/c/$threadId',
+  path: '/c/$threadId',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiUpgradeStatusRoute = ApiUpgradeStatusRouteImport.update({
   id: '/status',
   path: '/status',
   getParentRoute: () => ApiUpgradeRoute,
-} as any)
-const ApiPublicV1ModelsRoute = ApiPublicV1ModelsRouteImport.update({
-  id: '/api/public/v1/models',
-  path: '/api/public/v1/models',
-  getParentRoute: () => rootRouteImport,
 } as any)
 const ApiPublicTelegramWebhookRoute =
   ApiPublicTelegramWebhookRouteImport.update({
@@ -72,6 +67,11 @@ const ApiPublicTelegramWebhookRoute =
     path: '/api/public/telegram/webhook',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicV1ModelsRoute = ApiPublicV1ModelsRouteImport.update({
+  id: '/api/public/v1/models',
+  path: '/api/public/v1/models',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicV1ChatCompletionsRoute =
   ApiPublicV1ChatCompletionsRouteImport.update({
     id: '/api/public/v1/chat/completions',
@@ -176,13 +176,6 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/stats': {
-      id: '/stats'
-      path: '/stats'
-      fullPath: '/stats'
-      preLoaderRoute: typeof StatsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/': {
       id: '/'
       path: '/'
@@ -190,32 +183,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/c/$threadId': {
-      id: '/c/$threadId'
-      path: '/c/$threadId'
-      fullPath: '/c/$threadId'
-      preLoaderRoute: typeof CThreadIdRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/upgrade': {
-      id: '/api/upgrade'
-      path: '/api/upgrade'
-      fullPath: '/api/upgrade'
-      preLoaderRoute: typeof ApiUpgradeRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/stats': {
-      id: '/api/stats'
-      path: '/api/stats'
-      fullPath: '/api/stats'
-      preLoaderRoute: typeof ApiStatsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/chat': {
-      id: '/api/chat'
-      path: '/api/chat'
-      fullPath: '/api/chat'
-      preLoaderRoute: typeof ApiChatRouteImport
+    '/stats': {
+      id: '/stats'
+      path: '/stats'
+      fullPath: '/stats'
+      preLoaderRoute: typeof StatsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/apikey': {
@@ -225,6 +197,34 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiApikeyRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/chat': {
+      id: '/api/chat'
+      path: '/api/chat'
+      fullPath: '/api/chat'
+      preLoaderRoute: typeof ApiChatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/stats': {
+      id: '/api/stats'
+      path: '/api/stats'
+      fullPath: '/api/stats'
+      preLoaderRoute: typeof ApiStatsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/upgrade': {
+      id: '/api/upgrade'
+      path: '/api/upgrade'
+      fullPath: '/api/upgrade'
+      preLoaderRoute: typeof ApiUpgradeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/c/$threadId': {
+      id: '/c/$threadId'
+      path: '/c/$threadId'
+      fullPath: '/c/$threadId'
+      preLoaderRoute: typeof CThreadIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/upgrade/status': {
       id: '/api/upgrade/status'
       path: '/status'
@@ -232,18 +232,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiUpgradeStatusRouteImport
       parentRoute: typeof ApiUpgradeRoute
     }
-    '/api/public/v1/models': {
-      id: '/api/public/v1/models'
-      path: '/api/public/v1/models'
-      fullPath: '/api/public/v1/models'
-      preLoaderRoute: typeof ApiPublicV1ModelsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/api/public/telegram/webhook': {
       id: '/api/public/telegram/webhook'
       path: '/api/public/telegram/webhook'
       fullPath: '/api/public/telegram/webhook'
       preLoaderRoute: typeof ApiPublicTelegramWebhookRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/v1/models': {
+      id: '/api/public/v1/models'
+      path: '/api/public/v1/models'
+      fullPath: '/api/public/v1/models'
+      preLoaderRoute: typeof ApiPublicV1ModelsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/public/v1/chat/completions': {
