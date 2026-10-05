@@ -2,7 +2,7 @@ import { Component, useEffect, useRef, useState, type ReactNode } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import type { ChatMessage, ChatSource } from "@/lib/storage";
-import { Download, FileText, Globe, ExternalLink, Brain, ChevronDown, Copy, Check } from "lucide-react";
+import { Download, FileText, Globe, ExternalLink, Brain, ChevronDown, Copy, Check, ThumbsUp, ThumbsDown, Volume2, Share2, RefreshCw } from "lucide-react";
 import GeneratedImage from "./GeneratedImage";
 import { extractProjectFiles, downloadZip } from "@/lib/projectParser";
 
