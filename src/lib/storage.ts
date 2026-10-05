@@ -21,6 +21,7 @@ export type ChatMessage = {
   attachments?: ChatFileAttachment[];
   tokens?: number; // rough estimate
   sources?: ChatSource[];
+  rating?: 1 | -1;
 };
 
 export type Thread = {

@@ -2,7 +2,7 @@ import { Component, useEffect, useRef, useState, type ReactNode } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import type { ChatMessage, ChatSource } from "@/lib/storage";
-import { Download, FileText, Globe, ExternalLink, Brain, ChevronDown, Copy, Check } from "lucide-react";
+import { Download, FileText, Globe, ExternalLink, Brain, ChevronDown, Copy, Check, ThumbsUp, ThumbsDown, Volume2, Share2, RefreshCw } from "lucide-react";
 import GeneratedImage from "./GeneratedImage";
 import { extractProjectFiles, downloadZip } from "@/lib/projectParser";
 
@@ -97,7 +97,7 @@ function ThinkBlock({ think, thinking }: { think: string; thinking: boolean }) {
   );
 }
 
-export default function MessageList({ messages, streamingText, userName, streaming, webSearching }: { messages: ChatMessage[]; streamingText: string; userName: string; streaming?: boolean; webSearching?: boolean }) {
+export default function MessageList({ messages, streamingText, userName, streaming, webSearching, onRate, onRegenerate }: { messages: ChatMessage[]; streamingText: string; userName: string; streaming?: boolean; webSearching?: boolean; onRate?: (id: string, r: 1 | -1) => void; onRegenerate?: () => void }) {
   const endRef = useRef<HTMLDivElement>(null);
   useEffect(() => { endRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages, streamingText, streaming]);
 
@@ -105,7 +105,20 @@ export default function MessageList({ messages, streamingText, userName, streami
 
   return (
     <div className="mx-auto max-w-2xl px-3 py-4 flex flex-col gap-5">
-      {messages.map((m) => <Bubble key={m.id} message={m} userName={userName} />)}
+      {messages.map((m, i) => (
+        <div key={m.id} className="flex flex-col gap-1">
+          <Bubble message={m} userName={userName} />
+          {m.role === "assistant" && !(streaming && i === messages.length - 1) && (
+            <MessageActions
+              message={m}
+              isLast={i === messages.length - 1}
+              disabled={!!streaming}
+              onRate={onRate}
+              onRegenerate={onRegenerate}
+            />
+          )}
+        </div>
+      ))}
       {streamingText && (
         <Bubble
           message={{ id: "streaming", role: "assistant", content: streamingText, createdAt: Date.now() }}
@@ -290,6 +303,59 @@ function Bubble({ message, userName, streaming }: { message: ChatMessage; userNa
           )}
         </div>
       </div>
+    </div>
+  );
+}
+
+function MessageActions({ message, isLast, disabled, onRate, onRegenerate }: { message: ChatMessage; isLast: boolean; disabled: boolean; onRate?: (id: string, r: 1 | -1) => void; onRegenerate?: () => void }) {
+  const [copied, setCopied] = useState(false);
+  const [speaking, setSpeaking] = useState(false);
+  const plain = splitThink(message.content).body.replace(/!\[[^\]]*\]\(data:[^)]+\)/g, "").trim();
+  const btn = "h-8 w-8 rounded-lg flex items-center justify-center text-muted-foreground hover:bg-accent hover:text-foreground transition disabled:opacity-40";
+  const on = "text-primary";
+
+  function copy() {
+    void navigator.clipboard?.writeText(plain).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    });
+  }
+  function speak() {
+    if (typeof window === "undefined" || !window.speechSynthesis) return;
+    if (speaking) { window.speechSynthesis.cancel(); setSpeaking(false); return; }
+    const u = new SpeechSynthesisUtterance(plain.replace(/[#*`>_]/g, ""));
+    u.lang = /[а-яё]/i.test(plain) ? "ru-RU" : "en-US";
+    u.onend = () => setSpeaking(false);
+    window.speechSynthesis.speak(u);
+    setSpeaking(true);
+  }
+  function share() {
+    if (navigator.share) void navigator.share({ text: plain }).catch(() => {});
+    else copy();
+  }
+
+  return (
+    <div className="flex items-center gap-0.5 pl-9 -mt-1">
+      <button className={btn} onClick={copy} aria-label="Копировать" title="Копировать">
+        {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+      </button>
+      <button className={`${btn} ${message.rating === 1 ? on : ""}`} onClick={() => onRate?.(message.id, 1)} aria-label="Хороший ответ" title="Хороший ответ">
+        <ThumbsUp className={`h-4 w-4 ${message.rating === 1 ? "fill-current" : ""}`} />
+      </button>
+      <button className={`${btn} ${message.rating === -1 ? on : ""}`} onClick={() => onRate?.(message.id, -1)} aria-label="Плохой ответ" title="Плохой ответ">
+        <ThumbsDown className={`h-4 w-4 ${message.rating === -1 ? "fill-current" : ""}`} />
+      </button>
+      <button className={`${btn} ${speaking ? on : ""}`} onClick={speak} aria-label="Озвучить" title="Озвучить">
+        <Volume2 className="h-4 w-4" />
+      </button>
+      <button className={btn} onClick={share} aria-label="Поделиться" title="Поделиться">
+        <Share2 className="h-4 w-4" />
+      </button>
+      {isLast && (
+        <button className={btn} onClick={onRegenerate} disabled={disabled} aria-label="Перегенерировать" title="Перегенерировать">
+          <RefreshCw className="h-4 w-4" />
+        </button>
+      )}
     </div>
   );
 }
