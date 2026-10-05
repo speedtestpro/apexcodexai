@@ -185,6 +185,8 @@ export function newThread(modelId: string = DEFAULT_MODEL_ID): Thread {
 }
 
 export function estimateTokens(text: string): number {
-  // ~4 chars per token rough
-  return Math.ceil(text.length / 4);
+  // ~4 chars per token rough; встроенные картинки (data:) считаем фиксированно
+  let images = 0;
+  const clean = text.replace(/data:[^)\s]+/g, () => { images++; return ""; });
+  return Math.ceil(clean.length / 4) + images * 1000;
 }
