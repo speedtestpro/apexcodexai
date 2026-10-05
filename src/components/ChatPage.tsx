@@ -123,7 +123,7 @@ export default function ChatPage({ threadId }: { threadId: string }) {
     createNewChat(modelId);
   }, [thread, updateThread, createNewChat, currentPlanObj, manualPick]);
 
-  const sendMessage = useCallback(async (text: string, attachments: ChatFileAttachment[]) => {
+  const sendMessage = useCallback(async (text: string, attachments: ChatFileAttachment[], history?: ChatMessage[]) => {
     if (!thread) return;
     setError(null);
     if (session.cooldownUntil && Date.now() < session.cooldownUntil) {
@@ -143,13 +143,13 @@ export default function ChatPage({ threadId }: { threadId: string }) {
       id: uid(), role: "user", content: text, attachments: attachments.length ? attachments : undefined,
       createdAt: Date.now(), tokens: estimateTokens(text),
     };
-    const isFirst = thread.messages.length === 0;
+    const isFirst = (history ?? thread.messages).length === 0;
     const newTitle = isFirst ? text.slice(0, 40) || "Новый чат" : thread.title;
     updateThread(thread.id, (t) => ({
-      ...t, title: newTitle, messages: [...t.messages, userMsg], updatedAt: Date.now(),
+      ...t, title: newTitle, messages: [...(history ?? t.messages), userMsg], updatedAt: Date.now(),
     }));
 
-    const outgoing = [...thread.messages, userMsg].map((m) => ({
+    const outgoing = [...(history ?? thread.messages), userMsg].map((m) => ({
       role: m.role, content: m.content, attachments: m.attachments,
     }));
 
@@ -285,6 +285,19 @@ export default function ChatPage({ threadId }: { threadId: string }) {
               userName={settings.userName}
               streaming={streaming}
               webSearching={streaming && webSearchEnabled && !!currentModel.supportsWebSearch}
+              onRate={(id, r) => thread && updateThread(thread.id, (t) => ({
+                ...t,
+                messages: t.messages.map((m) => (m.id === id ? { ...m, rating: m.rating === r ? undefined : r } : m)),
+              }))}
+              onRegenerate={() => {
+                if (!thread || streaming) return;
+                const msgs = thread.messages;
+                let i = msgs.length - 1;
+                while (i >= 0 && msgs[i].role !== "user") i--;
+                if (i < 0) return;
+                const u = msgs[i];
+                void sendMessage(u.content, u.attachments ?? [], msgs.slice(0, i));
+              }}
             />
           )}
         </main>
