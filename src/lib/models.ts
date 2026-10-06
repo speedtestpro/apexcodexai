@@ -11,6 +11,8 @@ export type ApexModel = {
   badge?: string;
   /** Версия линейки Apex для этой модели. */
   version?: string;
+  /** Только через API, скрыта в интерфейсе. */
+  apiOnly?: boolean;
 };
 
 export const APEX_MODELS: ApexModel[] = [
@@ -22,7 +24,8 @@ export const APEX_MODELS: ApexModel[] = [
     supportsVision: true,
     supportsFiles: true,
     supportsWebSearch: true,
-    badge: "default",
+    badge: "api",
+    apiOnly: true,
     version: "2.3",
   },
   {
@@ -57,7 +60,7 @@ export const APEX_MODELS: ApexModel[] = [
     supportsFiles: true,
     supportsWebSearch: true,
     badge: "школа",
-    version: "1.1",
+    version: "1.2",
   },
   {
     id: "apex-vision",
@@ -71,10 +74,10 @@ export const APEX_MODELS: ApexModel[] = [
   },
 ];
 
-export const DEFAULT_MODEL_ID = "apex-flash";
+export const DEFAULT_MODEL_ID = "apex-mars";
 
 export function getModel(id: string): ApexModel {
-  return APEX_MODELS.find((m) => m.id === id) ?? APEX_MODELS[0];
+  return APEX_MODELS.find((m) => m.id === id) ?? APEX_MODELS.find((m) => m.id === DEFAULT_MODEL_ID)!;
 }
 
 /** Стоимость одной генерации изображения: от 800 до 2300 токенов. */

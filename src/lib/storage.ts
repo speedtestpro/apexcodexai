@@ -32,7 +32,33 @@ export type Thread = {
   updatedAt: number;
   messages: ChatMessage[];
   tokensUsed: number; // per-chat cap 900k
+  folderId?: string;
 };
+
+export type Folder = {
+  id: string;
+  name: string;
+  instructions: string;
+  createdAt: number;
+};
+
+const K_FOLDERS = "apexcode:folders:v1";
+
+export function loadFolders(): Folder[] {
+  return safeRead(() => {
+    const raw = localStorage.getItem(K_FOLDERS);
+    const arr = raw ? (JSON.parse(raw) as Folder[]) : [];
+    return Array.isArray(arr) ? arr : [];
+  }, []);
+}
+export function saveFolders(f: Folder[]) {
+  if (typeof window === "undefined") return;
+  try { localStorage.setItem(K_FOLDERS, JSON.stringify(f)); } catch { /* ignore */ }
+}
+function safeRead<T>(fn: () => T, fb: T): T {
+  if (typeof window === "undefined") return fb;
+  try { return fn(); } catch { return fb; }
+}
 
 export type Settings = {
   userName: string;

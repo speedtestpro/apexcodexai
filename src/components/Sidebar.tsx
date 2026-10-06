@@ -1,6 +1,7 @@
-import { X, Plus, Trash2, Settings as SettingsIcon, Sparkles, Crown, BarChart3 } from "lucide-react";
+import { useState } from "react";
+import { X, Plus, Trash2, Settings as SettingsIcon, Sparkles, Crown, BarChart3, Folder as FolderIcon, FolderPlus, FolderInput, ChevronRight, Pencil } from "lucide-react";
 import { Link } from "@tanstack/react-router";
-import type { Thread } from "@/lib/storage";
+import type { Thread, Folder } from "@/lib/storage";
 import { getPlan, type PlanId } from "@/lib/plans";
 
 type Props = {
@@ -14,10 +15,67 @@ type Props = {
   onOpenSettings: () => void;
   onOpenPlans: () => void;
   currentPlan: PlanId;
+  folders: Folder[];
+  onFoldersChange: (f: Folder[]) => void;
+  onNewInFolder: (folderId: string) => void;
+  onMoveThread: (threadId: string, folderId: string | undefined) => void;
 };
 
-export default function Sidebar({ open, onClose, threads, activeId, onSelect, onNew, onDelete, onOpenSettings, onOpenPlans, currentPlan }: Props) {
+export default function Sidebar({ open, onClose, threads, activeId, onSelect, onNew, onDelete, onOpenSettings, onOpenPlans, currentPlan, folders, onFoldersChange, onNewInFolder, onMoveThread }: Props) {
   const plan = getPlan(currentPlan);
+  const [openFolders, setOpenFolders] = useState<Record<string, boolean>>({});
+  const folderIds = new Set(folders.map((f) => f.id));
+  const loose = threads.filter((t) => !t.folderId || !folderIds.has(t.folderId));
+
+  function addFolder() {
+    const name = prompt("Название проекта")?.trim();
+    if (!name) return;
+    const instructions = prompt("Инструкции для ИИ в этом проекте (можно оставить пустым)") ?? "";
+    const f: Folder = { id: `f_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`, name, instructions, createdAt: Date.now() };
+    onFoldersChange([f, ...folders]);
+    setOpenFolders((p) => ({ ...p, [f.id]: true }));
+  }
+  function editFolder(f: Folder) {
+    const name = prompt("Название проекта", f.name)?.trim();
+    if (!name) return;
+    const instructions = prompt("Инструкции для ИИ в этом проекте", f.instructions) ?? f.instructions;
+    onFoldersChange(folders.map((x) => (x.id === f.id ? { ...x, name, instructions } : x)));
+  }
+  function deleteFolder(f: Folder) {
+    if (!confirm(`Удалить проект «${f.name}»? Чаты останутся в «Недавнем».`)) return;
+    onFoldersChange(folders.filter((x) => x.id !== f.id));
+  }
+  function moveThread(t: Thread) {
+    const opts = ["0 — Без проекта", ...folders.map((f, i) => `${i + 1} — ${f.name}`)].join("\n");
+    const v = prompt(`Переместить чат в проект (введите номер):\n${opts}`);
+    if (v === null) return;
+    const n = Number(v);
+    if (Number.isNaN(n)) return;
+    onMoveThread(t.id, n === 0 ? undefined : folders[n - 1]?.id);
+  }
+
+  const row = (t: Thread) => (
+    <li key={t.id} className={`group flex items-center gap-0.5 rounded-lg ${t.id === activeId ? "bg-sidebar-accent" : "hover:bg-sidebar-accent/60"}`}>
+      <button onClick={() => onSelect(t.id)} className="flex-1 min-w-0 text-left px-3 py-2 text-sm truncate">
+        {t.title || "Без названия"}
+      </button>
+      <button
+        onClick={() => moveThread(t)}
+        className="opacity-60 group-hover:opacity-100 h-8 w-8 rounded-md hover:bg-accent flex items-center justify-center"
+        aria-label="Переместить в проект"
+        title="Переместить в проект"
+      >
+        <FolderInput className="h-4 w-4" />
+      </button>
+      <button
+        onClick={() => { if (confirm("Удалить чат?")) onDelete(t.id); }}
+        className="mr-1 opacity-60 group-hover:opacity-100 h-8 w-8 rounded-md hover:bg-destructive/20 hover:text-destructive flex items-center justify-center"
+        aria-label="Удалить"
+      >
+        <Trash2 className="h-4 w-4" />
+      </button>
+    </li>
+  );
   return (
     <>
       {open && (
@@ -51,29 +109,58 @@ export default function Sidebar({ open, onClose, threads, activeId, onSelect, on
 
         <div className="px-2 pb-24 overflow-y-auto h-[calc(100dvh-200px)]">
           <div className="px-2 py-2 text-[11px] uppercase tracking-wider text-muted-foreground flex items-center gap-1">
+            <FolderIcon className="h-3 w-3" /> Проекты
+            <button onClick={addFolder} className="ml-auto h-6 w-6 rounded-md hover:bg-sidebar-accent flex items-center justify-center" aria-label="Новый проект" title="Новый проект">
+              <FolderPlus className="h-3.5 w-3.5" />
+            </button>
+          </div>
+          {folders.length === 0 && (
+            <button onClick={addFolder} className="w-full text-left px-3 py-2 text-sm text-muted-foreground hover:text-foreground">
+              + Создать проект
+            </button>
+          )}
+          <ul className="flex flex-col gap-0.5 mb-3">
+            {folders.map((f) => {
+              const isOpen = openFolders[f.id] ?? false;
+              const items = threads.filter((t) => t.folderId === f.id);
+              return (
+                <li key={f.id}>
+                  <div className="group flex items-center gap-0.5 rounded-lg hover:bg-sidebar-accent/60">
+                    <button onClick={() => setOpenFolders((p) => ({ ...p, [f.id]: !isOpen }))} className="flex-1 min-w-0 flex items-center gap-1.5 px-2 py-2 text-sm">
+                      <ChevronRight className={`h-3.5 w-3.5 shrink-0 transition-transform ${isOpen ? "rotate-90" : ""}`} />
+                      <FolderIcon className="h-4 w-4 shrink-0 text-primary" />
+                      <span className="truncate">{f.name}</span>
+                      <span className="text-[10px] text-muted-foreground">{items.length}</span>
+                    </button>
+                    <button onClick={() => onNewInFolder(f.id)} className="h-7 w-7 rounded-md hover:bg-accent flex items-center justify-center" aria-label="Новый чат в проекте" title="Новый чат в проекте">
+                      <Plus className="h-3.5 w-3.5" />
+                    </button>
+                    <button onClick={() => editFolder(f)} className="h-7 w-7 rounded-md hover:bg-accent flex items-center justify-center" aria-label="Изменить проект" title="Изменить проект">
+                      <Pencil className="h-3.5 w-3.5" />
+                    </button>
+                    <button onClick={() => deleteFolder(f)} className="mr-1 h-7 w-7 rounded-md hover:bg-destructive/20 hover:text-destructive flex items-center justify-center" aria-label="Удалить проект" title="Удалить проект">
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
+                  {isOpen && (
+                    <ul className="ml-4 border-l border-sidebar-border pl-1 flex flex-col gap-0.5">
+                      {items.length === 0 && <li className="px-3 py-1.5 text-xs text-muted-foreground">Пусто</li>}
+                      {items.map(row)}
+                    </ul>
+                  )}
+                </li>
+              );
+            })}
+          </ul>
+
+          <div className="px-2 py-2 text-[11px] uppercase tracking-wider text-muted-foreground flex items-center gap-1">
             <Sparkles className="h-3 w-3" /> Недавнее
           </div>
-          {threads.length === 0 && (
+          {loose.length === 0 && (
             <div className="px-3 py-2 text-sm text-muted-foreground">Пока нет чатов</div>
           )}
           <ul className="flex flex-col gap-0.5">
-            {threads.map((t) => (
-              <li key={t.id} className={`group flex items-center gap-1 rounded-lg ${t.id === activeId ? "bg-sidebar-accent" : "hover:bg-sidebar-accent/60"}`}>
-                <button
-                  onClick={() => onSelect(t.id)}
-                  className="flex-1 text-left px-3 py-2 text-sm truncate"
-                >
-                  {t.title || "Без названия"}
-                </button>
-                <button
-                  onClick={() => { if (confirm("Удалить чат?")) onDelete(t.id); }}
-                  className="mr-1 opacity-0 group-hover:opacity-100 h-8 w-8 rounded-md hover:bg-destructive/20 hover:text-destructive flex items-center justify-center"
-                  aria-label="Удалить"
-                >
-                  <Trash2 className="h-4 w-4" />
-                </button>
-              </li>
-            ))}
+            {loose.map(row)}
           </ul>
         </div>
 
