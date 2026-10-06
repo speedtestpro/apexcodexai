@@ -193,14 +193,16 @@ async function handlePost({ request }: { request: Request }) {
                 });
                 controller.enqueue(encoder.encode("data: [DONE]\n\n"));
                 controller.close();
-                await touchApiKey(apiKey, approxTokens + Math.ceil(out.length / 4));
+                const u = await Promise.resolve(result.usage).catch(() => undefined);
+                const realTokens = u?.totalTokens ?? (u ? (u.inputTokens ?? 0) + (u.outputTokens ?? 0) : 0) || approxTokens + Math.ceil(out.length / 4);
+                await touchApiKey(apiKey, realTokens).catch(() => {});
                 await logUsage({
                   source: "api",
                   apiKeyId: rec.id,
                   modelId: model.id,
                   gatewayModel: model.gateway,
                   status: "ok",
-                  tokens: approxTokens + Math.ceil(out.length / 4),
+                  tokens: realTokens,
                   durationMs: Date.now() - startedAt,
                 }).catch(() => {});
               },
@@ -216,15 +218,18 @@ async function handlePost({ request }: { request: Request }) {
           }
 
           const text = await result.text;
-          const completionTokens = Math.ceil(text.length / 4);
-          await touchApiKey(apiKey, approxTokens + completionTokens).catch(() => {});
+          const u = await Promise.resolve(result.usage).catch(() => undefined);
+          const promptTokens = u?.inputTokens ?? approxTokens;
+          const completionTokens = u?.outputTokens ?? Math.ceil(text.length / 4);
+          const totalTokens = u?.totalTokens ?? promptTokens + completionTokens;
+          await touchApiKey(apiKey, totalTokens).catch(() => {});
           await logUsage({
             source: "api",
             apiKeyId: rec.id,
             modelId: model.id,
             gatewayModel: model.gateway,
             status: "ok",
-            tokens: approxTokens + completionTokens,
+            tokens: totalTokens,
             durationMs: Date.now() - startedAt,
           }).catch(() => {});
           return Response.json(
@@ -235,9 +240,9 @@ async function handlePost({ request }: { request: Request }) {
               model: model.id,
               choices: [{ index: 0, message: { role: "assistant", content: text }, finish_reason: "stop" }],
               usage: {
-                prompt_tokens: approxTokens,
+                prompt_tokens: promptTokens,
                 completion_tokens: completionTokens,
-                total_tokens: approxTokens + completionTokens,
+                total_tokens: totalTokens,
               },
             },
             { headers: CORS },
