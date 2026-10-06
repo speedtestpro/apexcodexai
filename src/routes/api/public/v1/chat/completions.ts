@@ -194,7 +194,7 @@ async function handlePost({ request }: { request: Request }) {
                 controller.enqueue(encoder.encode("data: [DONE]\n\n"));
                 controller.close();
                 const u = await Promise.resolve(result.usage).catch(() => undefined);
-                const realTokens = u?.totalTokens ?? (u ? (u.inputTokens ?? 0) + (u.outputTokens ?? 0) : 0) || approxTokens + Math.ceil(out.length / 4);
+                const realTokens = (u?.totalTokens ?? (u ? (u.inputTokens ?? 0) + (u.outputTokens ?? 0) : 0)) || approxTokens + Math.ceil(out.length / 4);
                 await touchApiKey(apiKey, realTokens).catch(() => {});
                 await logUsage({
                   source: "api",
