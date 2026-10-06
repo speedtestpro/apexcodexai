@@ -3,7 +3,7 @@ import { useNavigate } from "@tanstack/react-router";
 import {
   loadThreads, saveThreads, loadActiveId, saveActiveId,
   loadSettings, saveSettings, loadSession, saveSession,
-  newThread, estimateTokens,
+  newThread, estimateTokens, loadFolders, saveFolders, type Folder,
   CHAT_TOKEN_CAP,
   SESSION_TOKEN_CAP, COOLDOWN_MS,
   type Thread, type ChatMessage, type Settings, type ChatFileAttachment, type SessionUsage,
@@ -35,6 +35,8 @@ export default function ChatPage({ threadId }: { threadId: string }) {
   const [error, setError] = useState<string | null>(null);
   const [webSearchEnabled, setWebSearchEnabled] = useState(false);
   const [deepThink, setDeepThink] = useState(false);
+  const [folders, setFolders] = useState<Folder[]>([]);
+  const updateFolders = useCallback((next: Folder[]) => { setFolders(next); saveFolders(next); }, []);
   const abortRef = useRef<AbortController | null>(null);
 
   // hydrate from localStorage on mount
@@ -44,6 +46,7 @@ export default function ChatPage({ threadId }: { threadId: string }) {
     setSettings(loadSettings());
     setSession(loadSession());
     setPlan(loadPlan());
+    setFolders(loadFolders());
     saveActiveId(threadId);
     // Auto reset cooldown ticker
     const int = setInterval(() => {
@@ -81,8 +84,9 @@ export default function ChatPage({ threadId }: { threadId: string }) {
     });
   }, []);
 
-  const createNewChat = useCallback((modelId?: string) => {
-    const t = newThread(modelId ?? settings ? DEFAULT_MODEL_ID : DEFAULT_MODEL_ID);
+  const createNewChat = useCallback((modelId?: string, folderId?: string) => {
+    const t = newThread(modelId ?? DEFAULT_MODEL_ID);
+    if (folderId) t.folderId = folderId;
     const next = [t, ...threads];
     setThreads(next);
     saveThreads(next);
@@ -121,7 +125,7 @@ export default function ChatPage({ threadId }: { threadId: string }) {
       return;
     }
     // Model change requires a new chat
-    createNewChat(modelId);
+    createNewChat(modelId, thread.folderId);
   }, [thread, updateThread, createNewChat, currentPlanObj, manualPick]);
 
   const sendMessage = useCallback(async (text: string, attachments: ChatFileAttachment[], history?: ChatMessage[]) => {
@@ -165,7 +169,13 @@ export default function ChatPage({ threadId }: { threadId: string }) {
         body: JSON.stringify({
           messages: outgoing,
           modelId: activeModelId,
-          systemPrompt: settings.systemPrompt,
+          systemPrompt: [
+            settings.systemPrompt,
+            (() => {
+              const f = folders.find((x) => x.id === thread.folderId);
+              return f?.instructions ? `Инструкции проекта «${f.name}»:\n${f.instructions}` : "";
+            })(),
+          ].filter(Boolean).join("\n\n"),
           userName: settings.userName,
           webSearch: webSearchEnabled && (getModel(activeModelId).supportsWebSearch ?? false),
           deepThink,
@@ -228,7 +238,7 @@ export default function ChatPage({ threadId }: { threadId: string }) {
       setStreamText("");
       abortRef.current = null;
     }
-  }, [thread, session, settings, updateThread, sessionCap, webSearchEnabled, deepThink, currentPlanObj, activeModelId]);
+  }, [thread, session, settings, updateThread, sessionCap, webSearchEnabled, deepThink, currentPlanObj, activeModelId, folders]);
 
   const stop = useCallback(() => {
     abortRef.current?.abort();
@@ -250,6 +260,10 @@ export default function ChatPage({ threadId }: { threadId: string }) {
         onOpenSettings={() => { setSidebarOpen(false); setSettingsOpen(true); }}
         onOpenPlans={() => { setSidebarOpen(false); setPlansOpen(true); }}
         currentPlan={plan}
+        folders={folders}
+        onFoldersChange={updateFolders}
+        onNewInFolder={(fid) => { setSidebarOpen(false); createNewChat(undefined, fid); }}
+        onMoveThread={(tid, fid) => updateThread(tid, (t) => ({ ...t, folderId: fid }))}
       />
       <div className="flex-1 flex flex-col min-w-0">
         <header className="apex-glass-soft flex items-center justify-between px-3 py-3">
