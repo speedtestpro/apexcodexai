@@ -197,10 +197,10 @@ export default function PlansDialog({ open, onClose, currentPlan, userName, onSe
                 <tr>
                   <td className="p-2 sticky left-0 bg-card text-muted-foreground">Доступно моделей</td>
                   {PLANS.map((p) => (
-                    <td key={p.id} className="p-2 text-center font-medium">{p.models.length} / {APEX_MODELS.length}</td>
+                    <td key={p.id} className="p-2 text-center font-medium">{p.models.length} / {APEX_MODELS.filter((m) => !m.apiOnly).length}</td>
                   ))}
                 </tr>
-                {APEX_MODELS.map((m) => (
+                {APEX_MODELS.filter((m) => !m.apiOnly).map((m) => (
                   <tr key={m.id} className="border-t border-border/50">
                     <td className="p-2 sticky left-0 bg-card">{m.label}</td>
                     {PLANS.map((p) => (

@@ -22,12 +22,12 @@ export const PLANS: Plan[] = [
     price: "$0",
     priceUsd: 0,
     sessionCap: 8_000,
-    models: ["apex-flash", "apex-pro"],
+    models: ["apex-mars", "apex-pro"],
     manualModelPick: false,
     autoProRequests: 12,
     features: [
       "8 000 токенов на сессию",
-      "Авто-выбор модели: первые 12 запросов на Apex Pro, дальше Apex Flash",
+      "Авто-выбор модели: первые 12 запросов на Apex Pro, дальше ApexMars 1.2",
       "Ручной выбор модели недоступен",
       "Файлы и изображения (ограниченно)",
     ],
@@ -39,13 +39,13 @@ export const PLANS: Plan[] = [
     price: "$19",
     priceUsd: 19,
     sessionCap: 32_000,
-    models: ["apex-flash", "apex-pro", "apex-vision", "apex-quasar"],
+    models: ["apex-mars", "apex-pro", "apex-vision", "apex-quasar"],
     manualModelPick: true,
     autoProRequests: 0,
     features: [
       "32 000 токенов на сессию",
       "Ручной выбор модели",
-      "Flash, Pro, Quasar и Vision (генерация фото)",
+      "ApexMars 1.2, Pro, Quasar и Vision (генерация фото)",
       "Приоритетная очередь и проекты в .zip",
     ],
     accent: "from-amber-500/40 to-amber-500/10",
@@ -56,12 +56,12 @@ export const PLANS: Plan[] = [
     price: "$39",
     priceUsd: 39,
     sessionCap: 64_000,
-    models: ["apex-flash", "apex-pro", "apex-vision", "apex-quasar", "apex-mars"],
+    models: ["apex-mars", "apex-pro", "apex-vision", "apex-quasar"],
     manualModelPick: true,
     autoProRequests: 0,
     features: [
       "64 000 токенов на сессию",
-      "Все модели, включая ApexMars 1.1",
+      "Все модели, включая ApexMars 1.2",
       "Максимальная защита от джейлбрейка",
       "Максимальный приоритет и поддержка",
     ],
@@ -105,5 +105,5 @@ export function saveUpgradeId(id: string) {
 
 /** Модель для авто-роутинга (Free): первые N запросов — Pro, дальше Flash. */
 export function autoRouteModelId(plan: Plan, requestIndex: number): string {
-  return requestIndex < plan.autoProRequests ? "apex-pro" : "apex-flash";
+  return requestIndex < plan.autoProRequests ? "apex-pro" : "apex-mars";
 }

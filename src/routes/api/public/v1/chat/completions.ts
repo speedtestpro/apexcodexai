@@ -95,7 +95,7 @@ async function handlePost({ request }: { request: Request }) {
         const modelId = body.model ?? "apex-flash";
         const model = APEX_MODELS.find((m) => m.id === modelId);
         if (!model) return err(400, "model_not_found", `Модель "${modelId}" не существует`);
-        if (!plan.models.includes(model.id)) {
+        if (!model.apiOnly && !plan.models.includes(model.id)) {
           return err(
             403,
             "model_not_in_plan",

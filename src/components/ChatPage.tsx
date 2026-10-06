@@ -109,7 +109,8 @@ export default function ChatPage({ threadId }: { threadId: string }) {
   const sessionCap = currentPlanObj.sessionCap;
   const manualPick = currentPlanObj.manualModelPick;
   const autoModelId = autoRouteModelId(currentPlanObj, session.requests ?? 0);
-  const activeModelId = manualPick ? (thread?.modelId ?? DEFAULT_MODEL_ID) : autoModelId;
+  const pickedId = thread?.modelId && !getModel(thread.modelId).apiOnly && getModel(thread.modelId).id === thread.modelId ? thread.modelId : DEFAULT_MODEL_ID;
+  const activeModelId = manualPick ? pickedId : autoModelId;
 
   const changeModel = useCallback((modelId: string) => {
     if (!thread) return;

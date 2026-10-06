@@ -28,7 +28,7 @@ export default function ModelPicker({
 
   const cur = getModel(current);
   const term = q.trim().toLowerCase();
-  const list = APEX_MODELS.filter(
+  const list = APEX_MODELS.filter((m) => !m.apiOnly).filter(
     (m) => !term || m.label.toLowerCase().includes(term) || m.description.toLowerCase().includes(term),
   );
   const available = list.filter((m) => allowedIds.includes(m.id));
