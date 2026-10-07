@@ -8,7 +8,7 @@ import {
   SESSION_TOKEN_CAP, COOLDOWN_MS,
   type Thread, type ChatMessage, type Settings, type ChatFileAttachment, type SessionUsage,
 } from "@/lib/storage";
-import { APEX_MODELS, DEFAULT_MODEL_ID, getModel } from "@/lib/models";
+import { APEX_MODELS, DEFAULT_MODEL_ID, getModel, wantsImage, IMAGE_CAPABLE_MODELS } from "@/lib/models";
 import Sidebar from "./Sidebar";
 import Composer from "./Composer";
 import MessageList from "./MessageList";
@@ -300,6 +300,7 @@ export default function ChatPage({ threadId }: { threadId: string }) {
               userName={settings.userName}
               streaming={streaming}
               webSearching={streaming && webSearchEnabled && !!currentModel.supportsWebSearch}
+              generatingImage={streaming && IMAGE_CAPABLE_MODELS.includes(currentModel.id) && wantsImage([...(thread?.messages ?? [])].reverse().find((m) => m.role === "user")?.content ?? "")}
               onRate={(id, r) => thread && updateThread(thread.id, (t) => ({
                 ...t,
                 messages: t.messages.map((m) => (m.id === id ? { ...m, rating: m.rating === r ? undefined : r } : m)),
