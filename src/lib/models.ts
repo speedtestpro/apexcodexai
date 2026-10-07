@@ -62,19 +62,23 @@ export const APEX_MODELS: ApexModel[] = [
     badge: "школа",
     version: "1.2",
   },
-  {
-    id: "apex-vision",
-    label: "Apex Vision",
-    description: "Генерация изображений по описанию.",
-    gateway: "lovable/openai/gpt-image-2.5-sunburst",
-    supportsVision: true,
-    supportsFiles: true,
-    badge: "image",
-    version: "2.3",
-  },
 ];
 
 export const DEFAULT_MODEL_ID = "apex-mars";
+
+/** Модели, умеющие генерировать фото прямо в чате. */
+export const IMAGE_CAPABLE_MODELS = ["apex-mars", "apex-quasar"];
+export const IMAGE_GATEWAY = "agnes/agnes-image-2.5-flash";
+
+/** Определяет, просит ли пользователь сгенерировать изображение. */
+export function wantsImage(text: string): boolean {
+  const t = (text || "").toLowerCase();
+  return (
+    /(нарисуй|нарисовать|сгенерируй|сгенерировать|создай|сделай|покажи)\s+(мне\s+)?(фото|фотку|картинк|изображени|рисунок|арт|логотип|иллюстрац|обои|аватар)/.test(t) ||
+    /^нарисуй/.test(t.trim()) ||
+    /\b(draw|generate|create|make)\b.{0,20}\b(image|picture|photo|art|logo|illustration)\b/.test(t)
+  );
+}
 
 export function getModel(id: string): ApexModel {
   return APEX_MODELS.find((m) => m.id === id) ?? APEX_MODELS.find((m) => m.id === DEFAULT_MODEL_ID)!;

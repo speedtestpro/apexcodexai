@@ -91,6 +91,23 @@ export async function generateImageDataUrl(gatewayModelId: string, prompt: strin
     return `data:${part.inlineData.mimeType ?? "image/png"};base64,${part.inlineData.data}`;
   }
 
+  if (vendor === "agnes") {
+    const key = process.env["OPENAI_API_KEY"];
+    if (!key) throw new Error("Нет ключа Agnes для генерации изображений");
+    const r = await fetch("https://apihub.agnes-ai.com/v1/images/generations", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${key}`, "content-type": "application/json" },
+      body: JSON.stringify({ model: name, prompt, n: 1 }),
+    });
+    const t = await r.text();
+    if (!r.ok) throw Object.assign(new Error(t.slice(0, 300)), { statusCode: r.status });
+    const d = JSON.parse(t) as { data?: Array<{ b64_json?: string; url?: string }> };
+    const f = d.data?.[0];
+    if (f?.b64_json) return `data:image/png;base64,${f.b64_json}`;
+    if (f?.url) return f.url;
+    throw new Error("Модель не вернула изображение");
+  }
+
   if (vendor === "lovable") {
     const lk = process.env["LOVABLE_API_KEY"];
     if (!lk) throw new Error("Нет ключа для генерации изображений");
