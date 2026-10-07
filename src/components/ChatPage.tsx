@@ -136,7 +136,7 @@ export default function ChatPage({ threadId }: { threadId: string }) {
       return;
     }
     if (thread.tokensUsed >= CHAT_TOKEN_CAP) {
-      setError("Достигнут лимит 900 000 токенов на этот чат. Начните новый чат.");
+      setError("Достигнут лимит 1 000 000 токенов на этот чат. Начните новый чат.");
       return;
     }
     if (!currentPlanObj.models.includes(activeModelId)) {
