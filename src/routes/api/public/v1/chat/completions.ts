@@ -113,16 +113,16 @@ async function handlePost({ request }: { request: Request }) {
         const created = Math.floor(Date.now() / 1000);
         const id = `chatcmpl_${Math.random().toString(36).slice(2, 12)}`;
 
-        // Image generation models
-        if (model.gateway.includes("image")) {
-          const last = [...messages].reverse().find((m) => m.role === "user");
-          const prompt =
-            typeof last?.content === "string"
-              ? last.content
-              : (last?.content ?? []).map((p) => ("text" in p ? p.text : "")).join(" ");
+        // Генерация фото в чате (Mars, Quasar) через Agnes
+        const last = [...messages].reverse().find((m) => m.role === "user");
+        const prompt =
+          typeof last?.content === "string"
+            ? last.content
+            : (last?.content ?? []).map((p) => ("text" in p ? p.text : "")).join(" ");
+        if (IMAGE_CAPABLE_MODELS.includes(model.id) && wantsImage(prompt)) {
           let src: string;
           try {
-            src = await generateImageDataUrl(model.gateway, prompt || "abstract art");
+            src = await generateImageDataUrl(IMAGE_GATEWAY, prompt || "abstract art");
           } catch (e) {
             const st = gatewayStatus(e);
             return err(st, codeFor(st), e instanceof Error ? e.message : "image error");
