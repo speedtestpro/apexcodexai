@@ -307,7 +307,7 @@ while (true) {
 
       <Section id="imagegen" title="8. Генерация изображений">
         <p className="text-xs text-muted-foreground">
-          Модель <code className="text-foreground">apex-vision</code> возвращает картинку в виде markdown-ссылки с
+          Модель <code className="text-foreground">apex-quasar</code> на запрос «нарисуй …» возвращает картинку в виде markdown-ссылки с
           data-URL внутри <code className="text-foreground">message.content</code>.
         </p>
         <CodeSample
@@ -315,7 +315,7 @@ while (true) {
           code={`curl ${baseUrl}/chat/completions \\
   -H "Authorization: Bearer $APEX_API_KEY" \\
   -H "Content-Type: application/json" \\
-  -d '{"model":"apex-vision","messages":[{"role":"user","content":"неоновый город под дождём"}]}'`}
+  -d '{"model":"apex-quasar","messages":[{"role":"user","content":"нарисуй неоновый город под дождём"}]}'`}
         />
       </Section>
 

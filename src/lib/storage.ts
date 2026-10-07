@@ -83,7 +83,7 @@ const K_ACTIVE = "apexcode:active:v1";
 const K_SETTINGS = "apexcode:settings:v1";
 const K_SESSION = "apexcode:session:v1";
 
-export const CHAT_TOKEN_CAP = 900_000;
+export const CHAT_TOKEN_CAP = 1_000_000;
 export const SESSION_TOKEN_CAP = 8_000;
 export const COOLDOWN_MS = 2 * 60 * 60 * 1000; // 2h
 

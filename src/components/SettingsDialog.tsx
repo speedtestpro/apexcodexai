@@ -197,7 +197,7 @@ export default function SettingsDialog({ open, onClose, settings, onSave }: { op
           <div className="rounded-xl border border-border p-3 bg-muted/40">
             <div className="text-xs text-muted-foreground">
               ApexCode — продукт компании <span className="text-foreground font-medium">Seulop</span>.
-              Лимиты: 900 000 токенов на чат, 8 000 токенов на сессию с восстановлением от 2 часов.
+              Лимиты: до 1M токенов контекста (Free 128K, Pro 512K, Max 1M) с восстановлением от 2 часов.
             </div>
           </div>
         </div>
