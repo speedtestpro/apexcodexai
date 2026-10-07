@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { streamText, type ModelMessage } from "ai";
 import { resolveModel, generateImageDataUrl } from "@/lib/ai-gateway.server";
-import { APEX_MODELS, imageTokenCost } from "@/lib/models";
+import { APEX_MODELS, imageTokenCost, IMAGE_CAPABLE_MODELS, IMAGE_GATEWAY, wantsImage } from "@/lib/models";
 import { getPlan } from "@/lib/plans";
 
 const CORS = {
