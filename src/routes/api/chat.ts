@@ -141,12 +141,13 @@ export const Route = createFileRoute("/api/chat")({
           }
         }
 
-        // Image-generation branch (Apex Vision)
-        if (model.gateway.includes("image")) {
+        // Генерация фото прямо в чате (Mars, Quasar) через Agnes
+        const { IMAGE_CAPABLE_MODELS, IMAGE_GATEWAY, wantsImage } = await import("@/lib/models");
+        const lastUserMsg = [...messages].reverse().find((m) => m.role === "user");
+        if (IMAGE_CAPABLE_MODELS.includes(model.id) && wantsImage(lastUserMsg?.content ?? "")) {
           try {
-            const lastUser = [...messages].reverse().find((m) => m.role === "user");
-            const prompt = (lastUser?.content ?? "").trim() || "beautiful abstract art";
-            const src = await generateImageDataUrl(model.gateway, prompt);
+            const prompt = (lastUserMsg?.content ?? "").trim() || "beautiful abstract art";
+            const src = await generateImageDataUrl(IMAGE_GATEWAY, prompt);
             const { imageTokenCost } = await import("@/lib/models");
             await logUsage({
               source: "web",
