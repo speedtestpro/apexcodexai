@@ -142,9 +142,11 @@ export const Route = createFileRoute("/api/chat")({
         }
 
         // Генерация фото прямо в чате (Mars, Quasar) через Agnes
-        const { IMAGE_CAPABLE_MODELS, IMAGE_GATEWAY, wantsImage } = await import("@/lib/models");
+        const { IMAGE_CAPABLE_MODELS, IMAGE_GATEWAY, wantsImage, GEN_IMAGE_MARKER, imageDecisionInstruction } = await import("@/lib/models");
+        const canImage = IMAGE_CAPABLE_MODELS.includes(model.id);
+        if (canImage) system += `\n\n${imageDecisionInstruction()}`;
         const lastUserMsg = [...messages].reverse().find((m) => m.role === "user");
-        if (IMAGE_CAPABLE_MODELS.includes(model.id) && wantsImage(lastUserMsg?.content ?? "")) {
+        if (canImage && wantsImage(lastUserMsg?.content ?? "")) {
           try {
             const prompt = (lastUserMsg?.content ?? "").trim() || "beautiful abstract art";
             const src = await generateImageDataUrl(IMAGE_GATEWAY, prompt);
