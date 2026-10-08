@@ -4,7 +4,6 @@ import {
   loadThreads, saveThreads, loadActiveId, saveActiveId,
   loadSettings, saveSettings, loadSession, saveSession,
   newThread, estimateTokens, loadFolders, saveFolders, type Folder,
-  CHAT_TOKEN_CAP,
   SESSION_TOKEN_CAP, COOLDOWN_MS,
   type Thread, type ChatMessage, type Settings, type ChatFileAttachment, type SessionUsage,
 } from "@/lib/storage";
