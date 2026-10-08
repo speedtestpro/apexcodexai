@@ -231,12 +231,69 @@ export const Route = createFileRoute("/api/chat")({
             async start(controller) {
               let got = false;
               let fallbackTried = false;
+              // Для моделей с генерацией фото сначала буферизуем начало ответа,
+              // чтобы перехватить маркер [[GEN_IMAGE: ...]] — модель сама решает, нужна ли картинка.
+              let decided = !canImage;
+              let pending = "";
+              const flushPending = () => {
+                if (pending) {
+                  controller.enqueue(encoder.encode(pending));
+                  pending = "";
+                }
+              };
               try {
                 for (;;) {
                   try {
                     for await (const chunk of result.textStream) {
-                      if (chunk) got = true;
-                      controller.enqueue(encoder.encode(chunk));
+                      if (!chunk) continue;
+                      got = true;
+                      if (decided) {
+                        controller.enqueue(encoder.encode(chunk));
+                        continue;
+                      }
+                      pending += chunk;
+                      const trimmed = pending.trimStart();
+                      // Маркер ещё может появиться — ждём
+                      if (GEN_IMAGE_MARKER.startsWith(trimmed) && trimmed.length < GEN_IMAGE_MARKER.length) continue;
+                      if (trimmed.startsWith(GEN_IMAGE_MARKER)) {
+                        const end = pending.indexOf("]]");
+                        if (end === -1) {
+                          if (pending.length > 2000) { decided = true; flushPending(); }
+                          continue;
+                        }
+                        // Модель решила сгенерировать изображение
+                        const imgPrompt = pending
+                          .slice(pending.indexOf(GEN_IMAGE_MARKER) + GEN_IMAGE_MARKER.length, end)
+                          .trim();
+                        pending = "";
+                        try {
+                          const src = await generateImageDataUrl(IMAGE_GATEWAY, imgPrompt || "beautiful art");
+                          controller.enqueue(encoder.encode(`Готово ✨\n\n![image](${src})`));
+                          const { imageTokenCost } = await import("@/lib/models");
+                          void logUsage({
+                            source: "web",
+                            modelId: model.id,
+                            gatewayModel: IMAGE_GATEWAY,
+                            status: "ok",
+                            tokens: imageTokenCost(imgPrompt),
+                            durationMs: Date.now() - startedAt,
+                          }).catch(() => {});
+                        } catch (imgErr) {
+                          const m = imgErr instanceof Error ? imgErr.message : "";
+                          controller.enqueue(
+                            encoder.encode(
+                              /429|quota|rate/i.test(m)
+                                ? "⚠️ Генерация картинок сейчас перегружена. Подождите немного и попробуйте снова."
+                                : "⚠️ Не удалось создать изображение. Попробуйте другое описание.",
+                            ),
+                          );
+                        }
+                        controller.close();
+                        return;
+                      }
+                      // Обычный текст — отдаём буфер и продолжаем стримить
+                      decided = true;
+                      flushPending();
                     }
                     if (!got) {
                       if (streamError) throw streamError;
