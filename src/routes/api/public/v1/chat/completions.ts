@@ -224,13 +224,56 @@ async function handlePost({ request }: { request: Request }) {
                   choices: [{ index: 0, delta: { role: "assistant" }, finish_reason: null }],
                 });
                 let out = "";
+                const canImage = IMAGE_CAPABLE_MODELS.includes(model.id);
+                let decided = !canImage;
+                let pending = "";
+                const sendChunk = (content: string) =>
+                  send({
+                    id, object: "chat.completion.chunk", created, model: model.id,
+                    choices: [{ index: 0, delta: { content }, finish_reason: null }],
+                  });
                 try {
                   for await (const chunk of result.textStream) {
-                    out += chunk;
-                    send({
-                      id, object: "chat.completion.chunk", created, model: model.id,
-                      choices: [{ index: 0, delta: { content: chunk }, finish_reason: null }],
-                    });
+                    if (decided) {
+                      out += chunk;
+                      sendChunk(chunk);
+                      continue;
+                    }
+                    pending += chunk;
+                    const trimmed = pending.trimStart();
+                    if (GEN_IMAGE_MARKER.startsWith(trimmed) && trimmed.length < GEN_IMAGE_MARKER.length) continue;
+                    if (trimmed.startsWith(GEN_IMAGE_MARKER)) {
+                      const end = pending.indexOf("]]");
+                      if (end === -1) {
+                        if (pending.length > 2000) { decided = true; out += pending; sendChunk(pending); pending = ""; }
+                        continue;
+                      }
+                      // Модель сама решила сгенерировать изображение
+                      const imgPrompt = pending.slice(pending.indexOf(GEN_IMAGE_MARKER) + GEN_IMAGE_MARKER.length, end).trim();
+                      pending = "";
+                      try {
+                        const src = await generateImageDataUrl(IMAGE_GATEWAY, imgPrompt || "abstract art");
+                        const md = `![image](${src})`;
+                        out += md;
+                        sendChunk(md);
+                        const imageTokens = imageTokenCost(imgPrompt);
+                        await touchApiKey(apiKey, imageTokens).catch(() => {});
+                        await logUsage({
+                          source: "api", apiKeyId: rec.id, modelId: model.id, gatewayModel: IMAGE_GATEWAY,
+                          status: "ok", tokens: imageTokens, durationMs: Date.now() - startedAt,
+                        }).catch(() => {});
+                      } catch (e) {
+                        send({ error: { message: e instanceof Error ? e.message : "image error" } });
+                      }
+                      send({ id, object: "chat.completion.chunk", created, model: model.id, choices: [{ index: 0, delta: {}, finish_reason: "stop" }] });
+                      controller.enqueue(encoder.encode("data: [DONE]\n\n"));
+                      controller.close();
+                      return;
+                    }
+                    decided = true;
+                    out += pending;
+                    sendChunk(pending);
+                    pending = "";
                   }
                 } catch (e) {
                   send({ error: { message: e instanceof Error ? e.message : "stream error" } });
