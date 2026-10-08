@@ -2,7 +2,7 @@ import { Component, useEffect, useRef, useState, type ReactNode } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import type { ChatMessage, ChatSource } from "@/lib/storage";
-import { Download, FileText, Globe, ExternalLink, Brain, ChevronDown, Copy, Check, ThumbsUp, ThumbsDown, Volume2, Share2, RefreshCw } from "lucide-react";
+import { Download, FileText, Globe, ExternalLink, Brain, ChevronDown, Copy, Check, ThumbsUp, ThumbsDown, Volume2, Share2, RefreshCw, ImagePlus } from "lucide-react";
 import GeneratedImage from "./GeneratedImage";
 import { extractProjectFiles, downloadZip } from "@/lib/projectParser";
 
@@ -97,7 +97,7 @@ function ThinkBlock({ think, thinking }: { think: string; thinking: boolean }) {
   );
 }
 
-export default function MessageList({ messages, streamingText, userName, streaming, webSearching, onRate, onRegenerate }: { messages: ChatMessage[]; streamingText: string; userName: string; streaming?: boolean; webSearching?: boolean; onRate?: (id: string, r: 1 | -1) => void; onRegenerate?: () => void }) {
+export default function MessageList({ messages, streamingText, userName, streaming, webSearching, generatingImage, onRate, onRegenerate }: { messages: ChatMessage[]; streamingText: string; userName: string; streaming?: boolean; webSearching?: boolean; generatingImage?: boolean; onRate?: (id: string, r: 1 | -1) => void; onRegenerate?: () => void }) {
   const endRef = useRef<HTMLDivElement>(null);
   useEffect(() => { endRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages, streamingText, streaming]);
 
@@ -131,7 +131,12 @@ export default function MessageList({ messages, streamingText, userName, streami
           <div className="flex gap-3 max-w-full">
             <div className="h-7 w-7 shrink-0 rounded-full apex-orb mt-0.5 animate-pulse-orb" />
             <div className="flex items-center min-h-7">
-              {webSearching ? (
+              {generatingImage ? (
+                <div className="flex items-center gap-2 text-sm">
+                  <ImagePlus className="h-3.5 w-3.5 shrink-0 apex-shimmer-icon" />
+                  <span className="apex-shimmer-text">Генерирую изображение…</span>
+                </div>
+              ) : webSearching ? (
                 <div className="flex items-center gap-2 text-sm">
                   <Globe className="h-3.5 w-3.5 shrink-0 apex-shimmer-icon" />
                   <span className="apex-shimmer-text">Поиск в интернете…</span>
