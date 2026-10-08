@@ -70,6 +70,14 @@ export const DEFAULT_MODEL_ID = "apex-mars";
 export const IMAGE_CAPABLE_MODELS = ["apex-mars", "apex-quasar"];
 export const IMAGE_GATEWAY = "agnes/agnes-image-2.5-flash";
 
+/** Маркер, которым модель сама сигналит о необходимости генерации изображения. */
+export const GEN_IMAGE_MARKER = "[[GEN_IMAGE:";
+
+/** Инструкция в системный промпт: модель сама решает, когда нужна картинка. */
+export function imageDecisionInstruction(): string {
+  return `ГЕНЕРАЦИЯ ИЗОБРАЖЕНИЙ: ты САМА решаешь, когда пользователю нужна картинка (просьба нарисовать, показать, сгенерировать изображение, логотип, арт, иллюстрацию, обои, аватар и т.п.). Если картинка нужна — ответь СТРОГО одной строкой вида ${GEN_IMAGE_MARKER} детальный промпт на английском]] и ничего больше. Если картинка не нужна — отвечай как обычно и НИКОГДА не используй этот маркер в обычном тексте.`;
+}
+
 /** Определяет, просит ли пользователь сгенерировать изображение. */
 export function wantsImage(text: string): boolean {
   const t = (text || "").toLowerCase();
