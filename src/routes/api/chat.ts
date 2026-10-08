@@ -311,6 +311,8 @@ export const Route = createFileRoute("/api/chat")({
                       fallbackTried = true;
                       activeGatewayId = "agnes/agnes-2.5-flash";
                       streamError = null;
+                      decided = !canImage;
+                      pending = "";
                       result = makeResult(activeGatewayId);
                       continue;
                     }
