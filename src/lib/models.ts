@@ -65,13 +65,13 @@ export const APEX_MODELS: ApexModel[] = [
   {
     id: "apex-mars-13",
     label: "ApexMars 1.3",
-    description: "Новая школьная модель: точнее решения, подробнее объяснения, генерация фото.",
+    description: "Заточена под кодинг: сложный код, рефакторинг и отладка. Генерация фото.",
     gateway: "google/gemini-3.1-pro-preview",
     visionGateway: "google/gemini-robotics-er-2-preview",
     supportsVision: true,
     supportsFiles: true,
     supportsWebSearch: true,
-    badge: "школа",
+    badge: "код",
     version: "1.3",
   },
 ];
