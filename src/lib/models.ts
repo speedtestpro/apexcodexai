@@ -19,14 +19,14 @@ export const APEX_MODELS: ApexModel[] = [
   {
     id: "apex-flash",
     label: "Apex Flash",
-    description: "Быстрый универсальный. По умолчанию.",
+    description: "Быстрый универсальный. Бесплатно по API на любом тарифе.",
     gateway: "google/gemini-3.5-flash-lite",
     supportsVision: true,
     supportsFiles: true,
     supportsWebSearch: true,
     badge: "api",
     apiOnly: true,
-    version: "2.3",
+    version: "2.4",
   },
   {
     id: "apex-pro",
@@ -37,7 +37,7 @@ export const APEX_MODELS: ApexModel[] = [
     supportsFiles: true,
     supportsWebSearch: true,
     badge: "pro",
-    version: "2.3",
+    version: "2.4",
   },
   {
     id: "apex-quasar",
@@ -48,7 +48,7 @@ export const APEX_MODELS: ApexModel[] = [
     supportsFiles: true,
     supportsWebSearch: true,
     badge: "new",
-    version: "2.3",
+    version: "2.4",
   },
   {
     id: "apex-mars",
@@ -62,12 +62,24 @@ export const APEX_MODELS: ApexModel[] = [
     badge: "школа",
     version: "1.2",
   },
+  {
+    id: "apex-mars-13",
+    label: "ApexMars 1.3",
+    description: "Новая школьная модель: точнее решения, подробнее объяснения, генерация фото.",
+    gateway: "google/gemini-3.1-pro-preview",
+    visionGateway: "google/gemini-robotics-er-2-preview",
+    supportsVision: true,
+    supportsFiles: true,
+    supportsWebSearch: true,
+    badge: "школа",
+    version: "1.3",
+  },
 ];
 
 export const DEFAULT_MODEL_ID = "apex-mars";
 
 /** Модели, умеющие генерировать фото прямо в чате. */
-export const IMAGE_CAPABLE_MODELS = ["apex-mars", "apex-quasar"];
+export const IMAGE_CAPABLE_MODELS = ["apex-mars", "apex-mars-13", "apex-quasar"];
 export const IMAGE_GATEWAY = "agnes/agnes-image-2.5-flash";
 
 /** Маркер, которым модель сама сигналит о необходимости генерации изображения. */
@@ -100,3 +112,6 @@ export function imageTokenCost(prompt: string): number {
   const extra = Math.ceil((prompt?.length ?? 0) * 1.5);
   return Math.min(IMAGE_TOKENS_MAX, Math.max(IMAGE_TOKENS_MIN, IMAGE_TOKENS_MIN + extra));
 }
+
+/** Инструкция для решения о веб-поиске. */
+export const WEB_DECIDE_PROMPT = `Ты решаешь, нужен ли веб-поиск, чтобы ответить на последнее сообщение пользователя. Поиск нужен для свежих новостей, событий, цен, курсов, погоды, расписаний, фактов о людях/компаниях/продуктах, всего, что могло измениться после твоего обучения, или если пользователь просит найти/проверить в интернете. Не нужен для кода, математики, переводов, творчества, общих знаний и болтовни. Ответь СТРОГО одной строкой: либо NO, либо короткий поисковый запрос (на языке пользователя) без кавычек.`;

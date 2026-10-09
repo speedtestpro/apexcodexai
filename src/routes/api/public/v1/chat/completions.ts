@@ -106,7 +106,7 @@ async function handlePost({ request }: { request: Request }) {
         const approxTokens = Math.ceil(
           JSON.stringify(messages).length / 4,
         );
-        if (approxTokens > plan.sessionCap) {
+        if (model.id !== "apex-flash" && approxTokens > plan.sessionCap) {
           return err(413, "context_too_large", `Запрос превышает лимит тарифа ${plan.label} (${plan.sessionCap} токенов).`);
         }
 
