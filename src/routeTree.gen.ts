@@ -11,6 +11,8 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as StatsRouteImport } from './routes/stats'
+import { Route as WorkspaceRouteImport } from './routes/workspace'
+import { Route as ApiAgentRouteImport } from './routes/api/agent'
 import { Route as ApiApikeyRouteImport } from './routes/api/apikey'
 import { Route as ApiChatRouteImport } from './routes/api/chat'
 import { Route as ApiStatsRouteImport } from './routes/api/stats'
@@ -29,6 +31,16 @@ const IndexRoute = IndexRouteImport.update({
 const StatsRoute = StatsRouteImport.update({
   id: '/stats',
   path: '/stats',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const WorkspaceRoute = WorkspaceRouteImport.update({
+  id: '/workspace',
+  path: '/workspace',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAgentRoute = ApiAgentRouteImport.update({
+  id: '/api/agent',
+  path: '/api/agent',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiApikeyRoute = ApiApikeyRouteImport.update({
@@ -82,6 +94,8 @@ const ApiPublicV1ChatCompletionsRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/stats': typeof StatsRoute
+  '/workspace': typeof WorkspaceRoute
+  '/api/agent': typeof ApiAgentRoute
   '/api/apikey': typeof ApiApikeyRoute
   '/api/chat': typeof ApiChatRoute
   '/api/stats': typeof ApiStatsRoute
@@ -95,6 +109,8 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/stats': typeof StatsRoute
+  '/workspace': typeof WorkspaceRoute
+  '/api/agent': typeof ApiAgentRoute
   '/api/apikey': typeof ApiApikeyRoute
   '/api/chat': typeof ApiChatRoute
   '/api/stats': typeof ApiStatsRoute
@@ -109,6 +125,8 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/stats': typeof StatsRoute
+  '/workspace': typeof WorkspaceRoute
+  '/api/agent': typeof ApiAgentRoute
   '/api/apikey': typeof ApiApikeyRoute
   '/api/chat': typeof ApiChatRoute
   '/api/stats': typeof ApiStatsRoute
@@ -124,6 +142,8 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/stats'
+    | '/workspace'
+    | '/api/agent'
     | '/api/apikey'
     | '/api/chat'
     | '/api/stats'
@@ -137,6 +157,8 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/stats'
+    | '/workspace'
+    | '/api/agent'
     | '/api/apikey'
     | '/api/chat'
     | '/api/stats'
@@ -150,6 +172,8 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/stats'
+    | '/workspace'
+    | '/api/agent'
     | '/api/apikey'
     | '/api/chat'
     | '/api/stats'
@@ -164,6 +188,8 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   StatsRoute: typeof StatsRoute
+  WorkspaceRoute: typeof WorkspaceRoute
+  ApiAgentRoute: typeof ApiAgentRoute
   ApiApikeyRoute: typeof ApiApikeyRoute
   ApiChatRoute: typeof ApiChatRoute
   ApiStatsRoute: typeof ApiStatsRoute
@@ -188,6 +214,20 @@ declare module '@tanstack/react-router' {
       path: '/stats'
       fullPath: '/stats'
       preLoaderRoute: typeof StatsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/workspace': {
+      id: '/workspace'
+      path: '/workspace'
+      fullPath: '/workspace'
+      preLoaderRoute: typeof WorkspaceRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/agent': {
+      id: '/api/agent'
+      path: '/api/agent'
+      fullPath: '/api/agent'
+      preLoaderRoute: typeof ApiAgentRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/apikey': {
@@ -271,6 +311,8 @@ const ApiUpgradeRouteWithChildren = ApiUpgradeRoute._addFileChildren(
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   StatsRoute: StatsRoute,
+  WorkspaceRoute: WorkspaceRoute,
+  ApiAgentRoute: ApiAgentRoute,
   ApiApikeyRoute: ApiApikeyRoute,
   ApiChatRoute: ApiChatRoute,
   ApiStatsRoute: ApiStatsRoute,
