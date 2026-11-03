@@ -165,7 +165,7 @@ async function handlePost({ request }: { request: Request }) {
           (m) => Array.isArray(m.content) && m.content.some((p) => p.type === "image_url"),
         );
         const primaryGateway = hasImages && model.visionGateway ? model.visionGateway : model.gateway;
-        const gateways = [primaryGateway, "agnes/agnes-2.5-flash"];
+        const gateways = [primaryGateway, "nvidia/nemotron-3.5-super-vl-120b-a12b"];
 
         // Собираем ответ, перебирая провайдеров, пока не получим непустой текст.
         async function* robustText(): AsyncGenerator<string> {
