@@ -176,6 +176,14 @@ export default function Sidebar({ open, onClose, threads, activeId, onSelect, on
             </span>
           </button>
           <Link
+            to="/workspace"
+            onClick={onClose}
+            className="w-full flex items-center gap-2 px-3 py-2.5 rounded-xl bg-sidebar-accent hover:bg-accent transition text-sm"
+          >
+            <Sparkles className="h-4 w-4 text-primary" />
+            ApexAgent Workspace
+          </Link>
+          <Link
             to="/stats"
             onClick={onClose}
             className="w-full flex items-center gap-2 px-3 py-2.5 rounded-xl bg-sidebar-accent hover:bg-accent transition text-sm"

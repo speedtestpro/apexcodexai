@@ -41,6 +41,15 @@ export function resolveModel(gatewayModelId: string): LanguageModel {
   const [vendor, ...rest] = gatewayModelId.split("/");
   const name = rest.join("/") || gatewayModelId;
 
+  if (vendor === "nvidia") {
+    const key = process.env["NVIDIA_API_KEY"];
+    if (!key) throw new Error("Missing NVIDIA_API_KEY");
+    return createOpenAICompatible({
+      name: "nvidia",
+      baseURL: "https://integrate.api.nvidia.com/v1",
+      headers: { Authorization: `Bearer ${key}` },
+    })(gatewayModelId);
+  }
   if (vendor === "google") {
     const key = process.env["GEMINI_API_KEY"];
     if (!key) throw new Error("Missing GEMINI_API_KEY");
