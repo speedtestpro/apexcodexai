@@ -331,7 +331,7 @@ ${model.id === "apex-mars-13" ? `НАЗНАЧЕНИЕ: ApexMars 1.3 создан
                     const st = eObj?.statusCode ?? eObj?.status;
                     if (!got && !fallbackTried && (st === 429 || (typeof st === "number" && st >= 500))) {
                       fallbackTried = true;
-                      activeGatewayId = "agnes/agnes-2.5-flash";
+                      activeGatewayId = "nvidia/nemotron-3.5-super-vl-120b-a12b";
                       streamError = null;
                       decided = !canImage;
                       pending = "";
