@@ -46,6 +46,7 @@ function Workspace() {
   const [sel, setSel] = useState<string | null>(null);
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
+  const [modelId, setModelId] = useState("apex-mars-13");
   const [tab, setTab] = useState<"code" | "term">("code");
   const plan = typeof window !== "undefined" ? loadPlan() : "free";
   const endRef = useRef<HTMLDivElement>(null);
@@ -73,7 +74,7 @@ function Workspace() {
     setWs((w) => ({ ...w, messages: [...msgs, { role: "assistant", content: "" }], logs: [...w.logs, `$ agent "${text.slice(0, 60)}"`] }));
     let out = "";
     try {
-      const r = await fetch("/api/agent", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ messages: msgs, files: ws.files }) });
+      const r = await fetch("/api/agent", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ messages: msgs, files: ws.files, modelId: plan === "free" ? "apex-mars-13" : modelId }) });
       if (!r.ok || !r.body) throw new Error(await r.text());
       const reader = r.body.getReader();
       const dec = new TextDecoder();
@@ -115,7 +116,7 @@ function Workspace() {
         <Link to="/" className="h-9 w-9 rounded-full hover:bg-accent flex items-center justify-center" aria-label="Назад"><ArrowLeft className="h-4 w-4" /></Link>
         <Bot className="h-5 w-5 text-primary" />
         <div className="font-serif text-lg">ApexAgent Workspace</div>
-        <span className="text-xs text-muted-foreground ml-2">Nemotron Super 3.5 VL</span>
+        <select value={plan === "free" ? "apex-mars-13" : modelId} onChange={(e) => setModelId(e.target.value)} disabled={plan === "free"} className="ml-2 text-xs bg-secondary rounded-md px-2 py-1" aria-label="Модель"><option value="apex-mars-13">ApexMars 1.3</option><option value="apex-quasar">Apex Quasar</option></select>
         <span className="ml-auto text-xs text-muted-foreground">{plan === "free" ? `Осталось сегодня: ${left}/${FREE_LIMIT}` : "Без лимита"}</span>
         <button onClick={() => downloadZip("apex-workspace", paths.map((p) => ({ path: p, content: ws.files[p] })))} disabled={!paths.length} className="h-9 px-3 rounded-lg bg-secondary text-sm flex items-center gap-1 disabled:opacity-40"><Download className="h-4 w-4" />.zip</button>
       </header>

@@ -1,13 +1,15 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { streamText } from "ai";
 import { resolveModel } from "@/lib/ai-gateway.server";
+import { getModel } from "@/lib/models";
 
-export const AGENT_GATEWAY = "nvidia/nemotron-3.5-super-vl-120b-a12b";
+const AGENT_MODELS = ["apex-mars-13", "apex-quasar"];
 
 type Body = {
   messages?: { role: "user" | "assistant"; content: string }[];
   files?: Record<string, string>;
   instructions?: string;
+  modelId?: string;
 };
 
 const SYSTEM = `Ты — ApexAgent, агент-разработчик ApexCode (Seulop) в режиме Workspace, как Claude Code / Codex.
@@ -34,7 +36,7 @@ export const Route = createFileRoute("/api/agent")({
         const system = `${SYSTEM}\n\nИнструкции проекта: ${body.instructions || "нет"}\n\nФАЙЛЫ ПРОЕКТА:\n${fileDump || "(пусто)"}`;
         try {
           const result = streamText({
-            model: resolveModel(AGENT_GATEWAY),
+            model: resolveModel(getModel(AGENT_MODELS.includes(body.modelId ?? "") ? body.modelId! : "apex-mars-13").gateway),
             system,
             messages: (body.messages ?? []).slice(-20),
           });
