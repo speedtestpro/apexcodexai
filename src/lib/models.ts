@@ -13,6 +13,8 @@ export type ApexModel = {
   version?: string;
   /** Только через API, скрыта в интерфейсе. */
   apiOnly?: boolean;
+  /** Макс. контекст чата (сколько помнит модель), токенов. */
+  contextCap?: number;
 };
 
 export const APEX_MODELS: ApexModel[] = [
@@ -86,6 +88,7 @@ export const APEX_MODELS: ApexModel[] = [
     supportsWebSearch: true,
     badge: "new",
     version: "1.1",
+    contextCap: 512_000,
   },
 ];
 

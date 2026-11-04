@@ -134,7 +134,7 @@ export default function ChatPage({ threadId }: { threadId: string }) {
       setError(`Сессионный лимит достигнут. Восстановление через ${formatCooldown(session.cooldownUntil - Date.now())}.`);
       return;
     }
-    const chatCap = currentPlanObj.sessionCap; // контекст чата по тарифу: 128K / 512K / 1M
+    const chatCap = Math.min(currentPlanObj.sessionCap, getModel(activeModelId).contextCap ?? Infinity); // контекст чата по тарифу: 128K / 512K / 1M
     if (thread.tokensUsed >= chatCap) {
       setError(`Достигнут лимит контекста чата (${chatCap.toLocaleString("ru-RU")} токенов) на тарифе ${currentPlanObj.label}. Начните новый чат или повысьте тариф.`);
       return;
