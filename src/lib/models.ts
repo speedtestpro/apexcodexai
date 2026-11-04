@@ -36,7 +36,8 @@ export const APEX_MODELS: ApexModel[] = [
     supportsVision: true,
     supportsFiles: true,
     supportsWebSearch: true,
-    badge: "pro",
+    badge: "api",
+    apiOnly: true,
     version: "2.4",
   },
   {
@@ -74,12 +75,26 @@ export const APEX_MODELS: ApexModel[] = [
     badge: "код",
     version: "1.3",
   },
+  {
+    id: "apex-licut",
+    label: "ApexLicut 1.1",
+    description: "Dev tools, Vision, генерация фото, Think, контекст 512K. Минимальный расход токенов.",
+    gateway: "google/gemini-3.1-pro-preview",
+    visionGateway: "google/gemini-robotics-er-2-preview",
+    supportsVision: true,
+    supportsFiles: true,
+    supportsWebSearch: true,
+    badge: "new",
+    version: "1.1",
+  },
 ];
+
+export const LICUT_INSTRUCTION = `НАЗНАЧЕНИЕ: ApexLicut 1.1 — модель для разработчиков (dev tools: код, отладка, терминал, git, API, регулярки, SQL), видит изображения, умеет генерировать фото и глубоко думать. СТИЛЬ: МИНИМУМ ТОКЕНОВ — отвечай максимально сжато, без вступлений, повторов и пояснений, которых не просили; код — только нужные части.`;
 
 export const DEFAULT_MODEL_ID = "apex-mars";
 
 /** Модели, умеющие генерировать фото прямо в чате. */
-export const IMAGE_CAPABLE_MODELS = ["apex-mars", "apex-mars-13", "apex-quasar"];
+export const IMAGE_CAPABLE_MODELS = ["apex-mars", "apex-mars-13", "apex-quasar", "apex-licut"];
 export const IMAGE_GATEWAY = "agnes/agnes-image-2.5-flash";
 
 /** Маркер, которым модель сама сигналит о необходимости генерации изображения. */

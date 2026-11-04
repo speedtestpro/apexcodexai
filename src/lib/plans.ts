@@ -22,12 +22,12 @@ export const PLANS: Plan[] = [
     price: "$0",
     priceUsd: 0,
     sessionCap: 128_000,
-    models: ["apex-mars", "apex-pro"],
+    models: ["apex-mars"],
     manualModelPick: false,
-    autoProRequests: 12,
+    autoProRequests: 0,
     features: [
       "Контекст 128K токенов",
-      "Авто-выбор модели: первые 12 запросов на Apex Pro, дальше ApexMars 1.2",
+      "В чате: ApexMars 1.2; по API — Apex Flash бесплатно",
       "Ручной выбор модели недоступен",
       "Файлы и изображения (ограниченно)",
     ],
@@ -39,13 +39,13 @@ export const PLANS: Plan[] = [
     price: "$19",
     priceUsd: 19,
     sessionCap: 512_000,
-    models: ["apex-mars", "apex-mars-13", "apex-pro", "apex-quasar"],
+    models: ["apex-mars", "apex-mars-13", "apex-pro", "apex-quasar", "apex-licut"],
     manualModelPick: true,
     autoProRequests: 0,
     features: [
       "Контекст 512K токенов",
       "Ручной выбор модели",
-      "ApexMars 1.2 и 1.3, Pro, Quasar (v2.4); генерация фото в чате; ИИ сам ищет в интернете",
+      "ApexMars 1.2 и 1.3, Quasar, ApexLicut 1.1; Apex Pro по API; генерация фото; ИИ сам ищет в интернете",
       "Приоритетная очередь и проекты в .zip",
     ],
     accent: "from-amber-500/40 to-amber-500/10",
@@ -56,12 +56,12 @@ export const PLANS: Plan[] = [
     price: "$39",
     priceUsd: 39,
     sessionCap: 1_000_000,
-    models: ["apex-mars", "apex-mars-13", "apex-pro", "apex-quasar"],
+    models: ["apex-mars", "apex-mars-13", "apex-pro", "apex-quasar", "apex-licut"],
     manualModelPick: true,
     autoProRequests: 0,
     features: [
       "Контекст 1M токенов",
-      "Все модели v2.4, включая ApexMars 1.3",
+      "Все модели, включая ApexMars 1.3 и ApexLicut 1.1",
       "Максимальная защита от джейлбрейка",
       "Максимальный приоритет и поддержка",
     ],
@@ -105,5 +105,6 @@ export function saveUpgradeId(id: string) {
 
 /** Модель для авто-роутинга (Free): первые N запросов — Pro, дальше Flash. */
 export function autoRouteModelId(plan: Plan, requestIndex: number): string {
-  return requestIndex < plan.autoProRequests ? "apex-pro" : "apex-mars";
+  void plan; void requestIndex;
+  return "apex-mars";
 }
