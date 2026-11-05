@@ -98,6 +98,7 @@ export type Database = {
       usage_events: {
         Row: {
           api_key_id: string | null
+          cost_usd: number
           created_at: string
           deep_think: boolean
           duration_ms: number
@@ -113,6 +114,7 @@ export type Database = {
         }
         Insert: {
           api_key_id?: string | null
+          cost_usd?: number
           created_at?: string
           deep_think?: boolean
           duration_ms?: number
@@ -128,6 +130,7 @@ export type Database = {
         }
         Update: {
           api_key_id?: string | null
+          cost_usd?: number
           created_at?: string
           deep_think?: boolean
           duration_ms?: number

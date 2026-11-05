@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { getPlan } from "@/lib/plans";
+import { DAILY_BUDGET_USD, kyivDayBounds } from "@/lib/pricing";
 
 export const Route = createFileRoute("/api/stats")({
   server: {
@@ -18,6 +19,9 @@ export const Route = createFileRoute("/api/stats")({
             tokensUsed: number;
             createdAt: string;
             sessionCap: number;
+            budgetUsd: number;
+            spentTodayUsd: number;
+            resetAt: string;
           } = null;
           let apiKeyId: string | null = null;
 
@@ -37,6 +41,9 @@ export const Route = createFileRoute("/api/stats")({
               tokensUsed: rec.tokensUsed,
               createdAt: rec.createdAt,
               sessionCap: plan.sessionCap,
+              budgetUsd: DAILY_BUDGET_USD[plan.id],
+              spentTodayUsd: await (await import("@/lib/usage.server")).spentTodayUsd(rec.id).catch(() => 0),
+              resetAt: kyivDayBounds().next.toISOString(),
             };
           }
 

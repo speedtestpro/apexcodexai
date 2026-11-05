@@ -22,6 +22,9 @@ type KeyInfo = {
   tokensUsed: number;
   createdAt: string;
   sessionCap: number;
+  budgetUsd: number;
+  spentTodayUsd: number;
+  resetAt: string;
 };
 
 type Stats = {
@@ -207,8 +210,11 @@ function StatsPage() {
                     <div className="text-base font-semibold">{data.keyInfo.tokensUsed.toLocaleString("ru-RU")}</div>
                   </div>
                   <div>
-                    <div className="text-muted-foreground">Лимит/запрос</div>
-                    <div className="text-base font-semibold">{data.keyInfo.sessionCap.toLocaleString("ru-RU")}</div>
+                    <div className="text-muted-foreground">Баланс сегодня</div>
+                    <div className="text-base font-semibold">
+                      ${Math.max(0, data.keyInfo.budgetUsd - data.keyInfo.spentTodayUsd).toFixed(4)} / ${data.keyInfo.budgetUsd.toFixed(2)}
+                    </div>
+                    <div className="text-[10px] text-muted-foreground">обновление в 00:00 по Киеву</div>
                   </div>
                 </div>
               </div>

@@ -15,7 +15,18 @@ export type UsageEventInput = {
   webSearch?: boolean;
   deepThink?: boolean;
   apiKeyId?: string | null;
+  costUsd?: number;
 };
+
+/** Сколько виртуальных $ ключ потратил с 00:00 по Киеву. */
+export async function spentTodayUsd(apiKeyId: string): Promise<number> {
+  const { kyivDayBounds } = await import("./pricing");
+  const { start } = kyivDayBounds();
+  const { data, error } = await (supabaseAdmin as any)
+    .from(TABLE).select("cost_usd").eq("api_key_id", apiKeyId).gte("created_at", start.toISOString()).limit(10000);
+  if (error) throw new Error(error.message);
+  return (data ?? []).reduce((s: number, r: { cost_usd: number | string }) => s + Number(r.cost_usd || 0), 0);
+}
 
 export async function logUsage(e: UsageEventInput): Promise<void> {
   try {
@@ -31,6 +42,7 @@ export async function logUsage(e: UsageEventInput): Promise<void> {
       web_search: !!e.webSearch,
       deep_think: !!e.deepThink,
       api_key_id: e.apiKeyId ?? null,
+      cost_usd: Math.max(0, e.costUsd ?? 0),
     });
   } catch (err) {
     console.error("[usage] log failed", err);

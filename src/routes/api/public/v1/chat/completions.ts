@@ -3,6 +3,7 @@ import { streamText, type ModelMessage } from "ai";
 import { resolveModel, generateImageDataUrl } from "@/lib/ai-gateway.server";
 import { LICUT_INSTRUCTION, APEX_MODELS, imageTokenCost, IMAGE_CAPABLE_MODELS, IMAGE_GATEWAY, wantsImage, GEN_IMAGE_MARKER, imageDecisionInstruction } from "@/lib/models";
 import { getPlan } from "@/lib/plans";
+import { computeCost, DAILY_BUDGET_USD, kyivDayBounds } from "@/lib/pricing";
 
 const CORS = {
   "access-control-allow-origin": "*",
@@ -110,6 +111,17 @@ async function handlePost({ request }: { request: Request }) {
           return err(413, "context_too_large", `Запрос превышает лимит тарифа ${plan.label} (${plan.sessionCap} токенов).`);
         }
 
+        // Дневной бюджет виртуальных $ (сброс в 00:00 по Киеву). Flash бесплатен.
+        if (model.id !== "apex-flash") {
+          const { spentTodayUsd } = await import("@/lib/usage.server");
+          const budget = DAILY_BUDGET_USD[plan.id];
+          const spent = await spentTodayUsd(rec.id).catch(() => 0);
+          if (spent >= budget) {
+            const { next } = kyivDayBounds();
+            return err(402, "insufficient_credits", `Дневной бюджет $${budget.toFixed(2)} на тарифе ${plan.label} исчерпан (потрачено $${spent.toFixed(4)}). Обновление в 00:00 по Киеву (${next.toISOString()}).`);
+          }
+        }
+
         const created = Math.floor(Date.now() / 1000);
         const id = `chatcmpl_${Math.random().toString(36).slice(2, 12)}`;
 
@@ -136,6 +148,7 @@ async function handlePost({ request }: { request: Request }) {
             gatewayModel: model.gateway,
             status: "ok",
             tokens: imageTokens,
+            costUsd: computeCost(model.id, { inputTokens: approxTokens, images: 1 }),
             durationMs: Date.now() - startedAt,
           }).catch(() => {});
           return Response.json(
@@ -263,7 +276,7 @@ async function handlePost({ request }: { request: Request }) {
                         await touchApiKey(apiKey, imageTokens).catch(() => {});
                         await logUsage({
                           source: "api", apiKeyId: rec.id, modelId: model.id, gatewayModel: IMAGE_GATEWAY,
-                          status: "ok", tokens: imageTokens, durationMs: Date.now() - startedAt,
+                          status: "ok", tokens: imageTokens, costUsd: computeCost(model.id, { inputTokens: approxTokens, images: 1 }), durationMs: Date.now() - startedAt,
                         }).catch(() => {});
                       } catch (e) {
                         send({ error: { message: e instanceof Error ? e.message : "image error" } });
@@ -297,6 +310,7 @@ async function handlePost({ request }: { request: Request }) {
                   gatewayModel: model.gateway,
                   status: "ok",
                   tokens: realTokens,
+                  costUsd: computeCost(model.id, { inputTokens: u?.inputTokens ?? approxTokens, outputTokens: u?.outputTokens ?? Math.ceil(out.length / 4) }),
                   durationMs: Date.now() - startedAt,
                 }).catch(() => {});
               },
@@ -322,7 +336,7 @@ async function handlePost({ request }: { request: Request }) {
               await touchApiKey(apiKey, imageTokens).catch(() => {});
               await logUsage({
                 source: "api", apiKeyId: rec.id, modelId: model.id, gatewayModel: IMAGE_GATEWAY,
-                status: "ok", tokens: imageTokens, durationMs: Date.now() - startedAt,
+                status: "ok", tokens: imageTokens, costUsd: computeCost(model.id, { inputTokens: approxTokens, images: 1 }), durationMs: Date.now() - startedAt,
               }).catch(() => {});
               return Response.json(
                 {
@@ -349,6 +363,7 @@ async function handlePost({ request }: { request: Request }) {
             gatewayModel: model.gateway,
             status: "ok",
             tokens: totalTokens,
+            costUsd: computeCost(model.id, { inputTokens: promptTokens, outputTokens: completionTokens }),
             durationMs: Date.now() - startedAt,
           }).catch(() => {});
           return Response.json(
